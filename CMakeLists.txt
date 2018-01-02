@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
 
-set(GDRIVE_VERSION 1.2.70)
-project(kio-gdrive VERSION ${GDRIVE_VERSION})
+set(ONEDRIVE_VERSION 1.2.70)
+project(kio-onedrive VERSION ${ONEDRIVE_VERSION})
 
 set(QT_MIN_VERSION 5.2.0)
 set(KF5_MIN_VERSION 5.31.0)
@@ -55,12 +55,12 @@ if(NOT Qt5Test_FOUND)
 endif()
 
 ecm_setup_version(PROJECT
-    VARIABLE_PREFIX GDRIVE
-    VERSION_HEADER gdriveversion.h)
+    VARIABLE_PREFIX ONEDRIVE
+    VERSION_HEADER onedriveversion.h)
 
 add_definitions(-DQT_NO_URL_CAST_FROM_STRING)
 add_definitions(-DQT_STRICT_ITERATORS)
-add_definitions(-DTRANSLATION_DOMAIN=\"kio5_gdrive\")
+add_definitions(-DTRANSLATION_DOMAIN=\"kio5_onedrive\")
 
 if(BUILD_TESTING)
     add_subdirectory(autotests)
