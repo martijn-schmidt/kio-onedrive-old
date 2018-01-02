@@ -5,7 +5,7 @@ project(kio-onedrive VERSION ${ONEDRIVE_VERSION})
 
 set(QT_MIN_VERSION 5.2.0)
 set(KF5_MIN_VERSION 5.31.0)
-set(KGAPI_MIN_VERSION 5.5.0)
+set(KMGRAPH_MIN_VERSION 5.5.0)
 set(KACCOUNTS_MIN_VERSION 17.04.0)
 set(QTKEYCHAIN_MIN_VERSION 0.6.0)
 
@@ -29,7 +29,7 @@ find_package(KF5 ${KF5_MIN_VERSION} REQUIRED COMPONENTS
     DocTools
     KIO)
 
-find_package(KPimGAPI ${KGAPI_MIN_VERSION} REQUIRED)
+find_package(KPimMGraph ${KMGRAPH_MIN_VERSION} REQUIRED)
 
 find_package(KAccounts ${KACCOUNTS_MIN_VERSION})
 set_package_properties(KAccounts PROPERTIES

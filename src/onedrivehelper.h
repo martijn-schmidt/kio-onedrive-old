@@ -20,16 +20,16 @@
 #ifndef ONEDRIVEHELPER_H
 #define ONEDRIVEHELPER_H
 
-#include <KGAPI/Types>
+#include <KMGraph/Types>
 #include <KIO/UDSEntry>
 
 namespace OneDriveHelper
 {
     QString folderMimeType();
 
-    bool isGDocsDocument(const KGAPI2::Drive::FilePtr &file);
+    bool isGDocsDocument(const KMGraph2::Drive::FilePtr &file);
 
-    QUrl convertFromGDocs(KGAPI2::Drive::FilePtr &file);
+    QUrl convertFromGDocs(KMGraph2::Drive::FilePtr &file);
 
     KIO::UDSEntry trash();
 }

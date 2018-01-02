@@ -1,6 +1,6 @@
 https://community.kde.org/KIO_OneDrive
 
-Hello there, lonely wanderer and welcome to the magical land of OneDrive!
+KIO-OneDrive (forked from KIO-GDrive) is a KIO Slave to access Microsoft OneDrive.
 
 
 INSTALLATION

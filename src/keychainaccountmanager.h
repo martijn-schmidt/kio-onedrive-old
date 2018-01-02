@@ -32,9 +32,9 @@ class KeychainAccountManager : public AbstractAccountManager
 public:
     virtual ~KeychainAccountManager() {}
 
-    KGAPI2::AccountPtr account(const QString &accountName) override;
-    KGAPI2::AccountPtr createAccount() override;
-    KGAPI2::AccountPtr refreshAccount(const KGAPI2::AccountPtr &account) override;
+    KMGraph2::AccountPtr account(const QString &accountName) override;
+    KMGraph2::AccountPtr createAccount() override;
+    KMGraph2::AccountPtr refreshAccount(const KMGraph2::AccountPtr &account) override;
     void removeAccount(const QString &accountName) override;
     QSet<QString> accounts() override;
 
@@ -45,7 +45,7 @@ private:
     template<typename T>
     T deserialize(QByteArray *data);
 
-    void storeAccount(const KGAPI2::AccountPtr &account);
+    void storeAccount(const KMGraph2::AccountPtr &account);
 
     // Store/remove account names in/from onedrive-accounts keychain entry.
     void removeAccountName(const QString &accountName);

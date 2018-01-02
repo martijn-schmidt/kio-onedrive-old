@@ -27,7 +27,7 @@
 #include <qt5keychain/keychain.h>
 
 #include <KIO/Job> //for stat.h
-#include <KGAPI/AuthJob>
+#include <KMGraph/AuthJob>
 
 QString KeychainAccountManager::s_apiKey = QStringLiteral("554041944266.apps.googleusercontent.com");
 QString KeychainAccountManager::s_apiSecret = QStringLiteral("mdT1DjzohxN3npUUzkENT0gO");
@@ -49,10 +49,10 @@ QSet<QString> KeychainAccountManager::accounts()
     return m_accounts;
 }
 
-KGAPI2::AccountPtr KeychainAccountManager::account(const QString &accountName)
+KMGraph2::AccountPtr KeychainAccountManager::account(const QString &accountName)
 {
     if (!accounts().contains(accountName)) {
-        return KGAPI2::AccountPtr(new KGAPI2::Account());
+        return KMGraph2::AccountPtr(new KMGraph2::Account());
     }
 
     const auto entry = readMap(accountName);
@@ -63,24 +63,24 @@ KGAPI2::AccountPtr KeychainAccountManager::account(const QString &accountName)
         scopeUrls << QUrl::fromUserInput(scope);
     }
 
-    return KGAPI2::AccountPtr(new KGAPI2::Account(accountName,
+    return KMGraph2::AccountPtr(new KMGraph2::Account(accountName,
                                                      entry.value(QStringLiteral("accessToken")),
                                                      entry.value(QStringLiteral("refreshToken")),
                                                      scopeUrls));
 }
 
-KGAPI2::AccountPtr KeychainAccountManager::createAccount()
+KMGraph2::AccountPtr KeychainAccountManager::createAccount()
 {
-    auto account = KGAPI2::AccountPtr(new KGAPI2::Account());
+    auto account = KMGraph2::AccountPtr(new KMGraph2::Account());
     account->addScope(QUrl(QStringLiteral("https://www.googleapis.com/auth/drive")));
     account->addScope(QUrl(QStringLiteral("https://www.googleapis.com/auth/drive.file")));
     account->addScope(QUrl(QStringLiteral("https://www.googleapis.com/auth/drive.metadata.readonly")));
     account->addScope(QUrl(QStringLiteral("https://www.googleapis.com/auth/drive.readonly")));
 
-    KGAPI2::AuthJob *authJob = new KGAPI2::AuthJob(account, s_apiKey, s_apiSecret);
+    KMGraph2::AuthJob *authJob = new KMGraph2::AuthJob(account, s_apiKey, s_apiSecret);
 
     QEventLoop eventLoop;
-    QObject::connect(authJob, &KGAPI2::Job::finished,
+    QObject::connect(authJob, &KMGraph2::Job::finished,
                      &eventLoop, &QEventLoop::quit);
     eventLoop.exec();
 
@@ -94,7 +94,7 @@ KGAPI2::AccountPtr KeychainAccountManager::createAccount()
     return account;
 }
 
-void KeychainAccountManager::storeAccount(const KGAPI2::AccountPtr &account)
+void KeychainAccountManager::storeAccount(const KMGraph2::AccountPtr &account)
 {
     qCDebug(ONEDRIVE) << "Storing account" << account->accessToken();
 
@@ -111,18 +111,18 @@ void KeychainAccountManager::storeAccount(const KGAPI2::AccountPtr &account)
     storeAccountName(account->accountName());
 }
 
-KGAPI2::AccountPtr KeychainAccountManager::refreshAccount(const KGAPI2::AccountPtr &account)
+KMGraph2::AccountPtr KeychainAccountManager::refreshAccount(const KMGraph2::AccountPtr &account)
 {
-    KGAPI2::AuthJob *authJob = new KGAPI2::AuthJob(account, s_apiKey, s_apiSecret);
+    KMGraph2::AuthJob *authJob = new KMGraph2::AuthJob(account, s_apiKey, s_apiSecret);
     QEventLoop eventLoop;
-    QObject::connect(authJob, &KGAPI2::Job::finished,
+    QObject::connect(authJob, &KMGraph2::Job::finished,
                      &eventLoop, &QEventLoop::quit);
     eventLoop.exec();
-    if (authJob->error() != KGAPI2::OK && authJob->error() != KGAPI2::NoError) {
-        return KGAPI2::AccountPtr();
+    if (authJob->error() != KMGraph2::OK && authJob->error() != KMGraph2::NoError) {
+        return KMGraph2::AccountPtr();
     }
 
-    const KGAPI2::AccountPtr newAccount = authJob->account();
+    const KMGraph2::AccountPtr newAccount = authJob->account();
     storeAccount(newAccount);
     return newAccount;
 }

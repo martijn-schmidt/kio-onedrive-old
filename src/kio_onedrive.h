@@ -22,8 +22,8 @@
 
 #include "pathcache.h"
 
-#include <KGAPI/Account>
-#include <KGAPI/Types>
+#include <KMGraph/Account>
+#include <KMGraph/Types>
 #include <KIO/SlaveBase>
 
 #include <memory>
@@ -32,7 +32,7 @@ class AbstractAccountManager;
 
 class QTemporaryFile;
 
-namespace KGAPI2
+namespace KMGraph2
 {
 class Job;
 }
@@ -84,12 +84,12 @@ private:
 
     QString resolveFileIdFromPath(const QString &path, PathFlags flags = None);
 
-    Action handleError(const KGAPI2::Job &job, const QUrl &url);
-    KIO::UDSEntry fileToUDSEntry(const KGAPI2::Drive::FilePtr &file, const QString &path) const;
+    Action handleError(const KMGraph2::Job &job, const QUrl &url);
+    KIO::UDSEntry fileToUDSEntry(const KMGraph2::Drive::FilePtr &file, const QString &path) const;
 
     void fileSystemFreeSpace(const QUrl &url);
 
-    KGAPI2::AccountPtr getAccount(const QString &accountName);
+    KMGraph2::AccountPtr getAccount(const QString &accountName);
 
     QString rootFolderId(const QString &accountId);
 
@@ -100,7 +100,7 @@ private:
     /**
      * @return Whether @p job succeeded.
      */
-    bool runJob(KGAPI2::Job &job, const QUrl &url, const QString &accountId);
+    bool runJob(KMGraph2::Job &job, const QUrl &url, const QString &accountId);
 
     std::unique_ptr<AbstractAccountManager> m_accountManager;
     PathCache m_cache;

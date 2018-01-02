@@ -31,15 +31,15 @@ public:
     KAccountsManager();
     virtual ~KAccountsManager();
 
-    KGAPI2::AccountPtr account(const QString &accountName) override;
-    KGAPI2::AccountPtr createAccount() override;
-    KGAPI2::AccountPtr refreshAccount(const KGAPI2::AccountPtr &account) override;
+    KMGraph2::AccountPtr account(const QString &accountName) override;
+    KMGraph2::AccountPtr createAccount() override;
+    KMGraph2::AccountPtr refreshAccount(const KMGraph2::AccountPtr &account) override;
     void removeAccount(const QString &accountName) override;
     QSet<QString> accounts() override;
 
 private:
     void loadAccounts();
 
-    QMap<Accounts::AccountId, KGAPI2::AccountPtr> m_accounts;
+    QMap<Accounts::AccountId, KMGraph2::AccountPtr> m_accounts;
 };
 

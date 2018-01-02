@@ -21,7 +21,7 @@
 
 #include <QSet>
 
-#include <KGAPI/Account>
+#include <KMGraph/Account>
 #include <KIO/UDSEntry>
 
 class AbstractAccountManager
@@ -34,15 +34,15 @@ public:
      * The account is valid only if @p accountName is in accounts().
      * @see accounts()
      */
-    virtual KGAPI2::AccountPtr account(const QString &accountName) = 0;
+    virtual KMGraph2::AccountPtr account(const QString &accountName) = 0;
 
     /**
      * Creates a new account.
      * @return The new account if a new account has been created, an invalid account otherwise.
      */
-    virtual KGAPI2::AccountPtr createAccount() = 0;
+    virtual KMGraph2::AccountPtr createAccount() = 0;
 
-    virtual KGAPI2::AccountPtr refreshAccount(const KGAPI2::AccountPtr &account) = 0;
+    virtual KMGraph2::AccountPtr refreshAccount(const KMGraph2::AccountPtr &account) = 0;
 
     /**
      * Remove @p accountName from accounts().

@@ -35,8 +35,8 @@ kcoreaddons_add_plugin(kio_onedrive
 target_link_libraries(kio_onedrive
     Qt5::Core
     Qt5::Network
-    KPim::GAPICore
-    KPim::GAPIDrive
+    KPim::MGraphCore
+    KPim::MGraphOneDrive
     KF5::KIOCore
     KF5::KIOWidgets
     KF5::I18n

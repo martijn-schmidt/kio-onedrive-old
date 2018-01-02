@@ -28,23 +28,23 @@
 #include <QUrlQuery>
 #include <QTemporaryFile>
 
-#include <KGAPI/Account>
-#include <KGAPI/AuthJob>
-#include <KGAPI/Drive/About>
-#include <KGAPI/Drive/AboutFetchJob>
-#include <KGAPI/Drive/ChildReference>
-#include <KGAPI/Drive/ChildReferenceFetchJob>
-#include <KGAPI/Drive/ChildReferenceCreateJob>
-#include <KGAPI/Drive/File>
-#include <KGAPI/Drive/FileCopyJob>
-#include <KGAPI/Drive/FileCreateJob>
-#include <KGAPI/Drive/FileModifyJob>
-#include <KGAPI/Drive/FileTrashJob>
-#include <KGAPI/Drive/FileFetchJob>
-#include <KGAPI/Drive/FileFetchContentJob>
-#include <KGAPI/Drive/FileSearchQuery>
-#include <KGAPI/Drive/ParentReference>
-#include <KGAPI/Drive/Permission>
+#include <KMGraph/Account>
+#include <KMGraph/AuthJob>
+#include <KMGraph/OneDrive/About>
+#include <KMGraph/OneDrive/AboutFetchJob>
+#include <KMGraph/OneDrive/ChildReference>
+#include <KMGraph/OneDrive/ChildReferenceFetchJob>
+#include <KMGraph/OneDrive/ChildReferenceCreateJob>
+#include <KMGraph/OneDrive/File>
+#include <KMGraph/OneDrive/FileCopyJob>
+#include <KMGraph/OneDrive/FileCreateJob>
+#include <KMGraph/OneDrive/FileModifyJob>
+#include <KMGraph/OneDrive/FileTrashJob>
+#include <KMGraph/OneDrive/FileFetchJob>
+#include <KMGraph/OneDrive/FileFetchContentJob>
+#include <KMGraph/OneDrive/FileSearchQuery>
+#include <KMGraph/OneDrive/ParentReference>
+#include <KMGraph/OneDrive/Permission>
 #include <KIO/AccessManager>
 #include <KIO/Job>
 #include <KLocalizedString>
@@ -52,8 +52,8 @@
 #include <QNetworkRequest>
 #include <QNetworkReply>
 
-using namespace KGAPI2;
-using namespace Drive;
+using namespace KMGraph2;
+using namespace OneDrive;
 
 class KIOPluginForMetaData : public QObject
 {
@@ -95,19 +95,19 @@ KIOOneDrive::~KIOOneDrive()
     closeConnection();
 }
 
-KIOOneDrive::Action KIOOneDrive::handleError(const KGAPI2::Job &job, const QUrl &url)
+KIOOneDrive::Action KIOOneDrive::handleError(const KMGraph2::Job &job, const QUrl &url)
 {
     qCDebug(ONEDRIVE) << "Job status code:" << job.error() << "- message:" << job.errorString();
 
     switch (job.error()) {
-        case KGAPI2::OK:
-        case KGAPI2::NoError:
+        case KMGraph2::OK:
+        case KMGraph2::NoError:
             return Success;
-        case KGAPI2::AuthCancelled:
-        case KGAPI2::AuthError:
+        case KMGraph2::AuthCancelled:
+        case KMGraph2::AuthError:
             error(KIO::ERR_CANNOT_LOGIN, url.toDisplayString());
             return Fail;
-        case KGAPI2::Unauthorized: {
+        case KMGraph2::Unauthorized: {
             const AccountPtr oldAccount = job.account();
             const AccountPtr account = m_accountManager->refreshAccount(oldAccount);
             if (!account) {
@@ -116,16 +116,16 @@ KIOOneDrive::Action KIOOneDrive::handleError(const KGAPI2::Job &job, const QUrl 
             }
             return Restart;
         }
-        case KGAPI2::Forbidden:
+        case KMGraph2::Forbidden:
             error(KIO::ERR_ACCESS_DENIED, url.toDisplayString());
             return Fail;
-        case KGAPI2::NotFound:
+        case KMGraph2::NotFound:
             error(KIO::ERR_DOES_NOT_EXIST, url.toDisplayString());
             return Fail;
-        case KGAPI2::NoContent:
+        case KMGraph2::NoContent:
             error(KIO::ERR_NO_CONTENT, url.toDisplayString());
             return Fail;
-        case KGAPI2::QuotaExceeded:
+        case KMGraph2::QuotaExceeded:
             error(KIO::ERR_DISK_FULL, url.toDisplayString());
             return Fail;
         default:
@@ -243,7 +243,7 @@ KIO::UDSEntry KIOOneDrive::accountToUDSEntry(const QString &accountNAme)
 
 void KIOOneDrive::createAccount()
 {
-    const KGAPI2::AccountPtr account = m_accountManager->createAccount();
+    const KMGraph2::AccountPtr account = m_accountManager->createAccount();
     if (!account->accountName().isEmpty()) {
         // Redirect to the account we just created.
         redirection(QUrl(QStringLiteral("onedrive:/%1").arg(account->accountName())));
@@ -625,12 +625,12 @@ void KIOOneDrive::get(const QUrl &url)
 bool KIOOneDrive::readPutData(QTemporaryFile &tempFile)
 {
     // TODO: Instead of using a temp file, upload directly the raw data (requires
-    // support in LibKGAPI)
+    // support in LibKMGraph)
 
     // TODO: For large files, switch to resumable upload and upload the file in
-    // reasonably large chunks (requires support in LibKGAPI)
+    // reasonably large chunks (requires support in LibKMGraph)
 
-    // TODO: Support resumable upload (requires support in LibKGAPI)
+    // TODO: Support resumable upload (requires support in LibKMGraph)
 
     if (!tempFile.open()) {
         error(KIO::ERR_CANNOT_WRITE, tempFile.fileName());
@@ -661,13 +661,13 @@ bool KIOOneDrive::readPutData(QTemporaryFile &tempFile)
     return true;
 }
 
-bool KIOOneDrive::runJob(KGAPI2::Job &job, const QUrl &url, const QString &accountId)
+bool KIOOneDrive::runJob(KMGraph2::Job &job, const QUrl &url, const QString &accountId)
 {
     KIOOneDrive::Action action = KIOOneDrive::Fail;
     Q_FOREVER {
         qCDebug(ONEDRIVE) << "Running job" << (&job) << "with accessToken" << job.account()->accessToken();
         QEventLoop eventLoop;
-        QObject::connect(&job, &KGAPI2::Job::finished,
+        QObject::connect(&job, &KMGraph2::Job::finished,
                          &eventLoop, &QEventLoop::quit);
         eventLoop.exec();
         action = handleError(job, url);
@@ -910,7 +910,7 @@ void KIOOneDrive::del(const QUrl &url, bool isfile)
 
     // If user tries to delete the account folder, remove the account from the keychain
     if (onedriveUrl.isAccountRoot()) {
-        const KGAPI2::AccountPtr account = getAccount(accountId);
+        const KMGraph2::AccountPtr account = getAccount(accountId);
         if (account->accountName().isEmpty()) {
             error(KIO::ERR_DOES_NOT_EXIST, accountId);
             return;

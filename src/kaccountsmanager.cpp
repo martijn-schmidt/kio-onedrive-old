@@ -24,12 +24,12 @@
 #include <Accounts/Provider>
 #include <KAccounts/Core>
 #include <KAccounts/GetCredentialsJob>
-#include <KGAPI/Account>
+#include <KMGraph/Account>
 
 #include <QProcess>
 #include <QStandardPaths>
 
-using namespace KGAPI2;
+using namespace KMGraph2;
 
 KAccountsManager::KAccountsManager()
 {
@@ -146,16 +146,16 @@ void KAccountsManager::loadAccounts()
             auto job = new GetCredentialsJob(id, nullptr);
             job->exec();
 
-            auto gapiAccount = AccountPtr(new Account(account->displayName(),
+            auto mgraphAccount = AccountPtr(new Account(account->displayName(),
                                                       job->credentialsData().value(QStringLiteral("AccessToken")).toString(),
                                                       job->credentialsData().value(QStringLiteral("RefreshToken")).toString()));
 
             const auto scopes = job->credentialsData().value(QStringLiteral("Scope")).toStringList();
             for (const auto &scope : scopes) {
-                gapiAccount->addScope(QUrl::fromUserInput(scope));
+                mgraphAccount->addScope(QUrl::fromUserInput(scope));
             }
 
-            m_accounts.insert(id, gapiAccount);
+            m_accounts.insert(id, mgraphAccount);
         }
     }
 }
