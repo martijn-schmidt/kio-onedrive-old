@@ -25,28 +25,28 @@
 #include <KNotification>
 #include <KRun>
 
-GoogleDrivePlugin::GoogleDrivePlugin(QObject *parent)
+OneDrivePlugin::OneDrivePlugin(QObject *parent)
     : KAccountsDPlugin(parent)
 {
 }
 
-void GoogleDrivePlugin::onAccountCreated(const Accounts::AccountId accountId, const Accounts::ServiceList &serviceList)
+void OneDrivePlugin::onAccountCreated(const Accounts::AccountId accountId, const Accounts::ServiceList &serviceList)
 {
     Q_UNUSED(serviceList)
     auto account = Accounts::Account::fromId(KAccounts::accountsManager(), accountId);
 
-    if (account->providerName() != QLatin1String("google")) {
+    if (account->providerName() != QLatin1String("microsoft")) {
         return;
     }
 
     auto notification = new KNotification(QStringLiteral("new-account-added"));
-    notification->setComponentName(QStringLiteral("gdrive"));
+    notification->setComponentName(QStringLiteral("onedrive"));
     notification->setTitle(i18n("New Online Account"));
-    notification->setText(xi18nc("@info", "You can now manage the Google Drive files of your <emphasis strong='true'>%1</emphasis> account.", account->displayName()));
+    notification->setText(xi18nc("@info", "You can now manage the Microsoft OneDrive files of your <emphasis strong='true'>%1</emphasis> account.", account->displayName()));
     notification->setActions({i18n("Open")});
 
     QUrl url;
-    url.setScheme(QStringLiteral("gdrive"));
+    url.setScheme(QStringLiteral("onedrive"));
     url.setPath(QStringLiteral("/%1").arg(account->displayName()));
 
     connect(notification, static_cast<void (KNotification::*)(unsigned int)>(&KNotification::activated), this, [=]() {
@@ -56,18 +56,18 @@ void GoogleDrivePlugin::onAccountCreated(const Accounts::AccountId accountId, co
     notification->sendEvent();
 }
 
-void GoogleDrivePlugin::onAccountRemoved(const Accounts::AccountId accountId)
+void OneDrivePlugin::onAccountRemoved(const Accounts::AccountId accountId)
 {
     Q_UNUSED(accountId)
 }
 
-void GoogleDrivePlugin::onServiceEnabled(const Accounts::AccountId accountId, const Accounts::Service &service)
+void OneDrivePlugin::onServiceEnabled(const Accounts::AccountId accountId, const Accounts::Service &service)
 {
     Q_UNUSED(accountId)
     Q_UNUSED(service)
 }
 
-void GoogleDrivePlugin::onServiceDisabled(const Accounts::AccountId accountId, const Accounts::Service &service)
+void OneDrivePlugin::onServiceDisabled(const Accounts::AccountId accountId, const Accounts::Service &service)
 {
     Q_UNUSED(accountId)
     Q_UNUSED(service)

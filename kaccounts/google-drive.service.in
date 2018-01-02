@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<service id="google-drive">
-  <type>google-drive</type>
-  <_name>Drive</_name>
-  <_description>Integrate your Google Drive documents</_description>
-  <icon>folder-gdrive</icon>
-  <provider>google</provider>
-  <translations>kaccounts-providers</translations>
-</service>

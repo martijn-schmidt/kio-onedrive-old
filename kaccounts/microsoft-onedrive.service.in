@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<service id="microsoft-onedrive">
+  <type>microsoft-onedrive</type>
+  <name>OneDrive</name>
+  <description>Integrate your Microsoft OneDrive documents</description>
+  <icon>im-msn</icon>
+  <provider>microsoft</provider>
+  <translations>kaccounts-providers</translations>
+</service>
