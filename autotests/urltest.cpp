@@ -17,7 +17,7 @@
  *
  */
 
-#include "../src/gdriveurl.h"
+#include "../src/onedriveurl.h"
 
 #include <QTest>
 
@@ -26,13 +26,13 @@ class UrlTest : public QObject
     Q_OBJECT
 
 private Q_SLOTS:
-    void testGDriveUrl_data();
-    void testGDriveUrl();
+    void testOneDriveUrl_data();
+    void testOneDriveUrl();
 };
 
 QTEST_GUILESS_MAIN(UrlTest)
 
-void UrlTest::testGDriveUrl_data()
+void UrlTest::testOneDriveUrl_data()
 {
     QTest::addColumn<QUrl>("url");
     QTest::addColumn<QString>("expectedAccount");
@@ -40,58 +40,58 @@ void UrlTest::testGDriveUrl_data()
     QTest::addColumn<QStringList>("expectedPathComponents");
 
     QTest::newRow("root url")
-            << QUrl(QStringLiteral("gdrive://"))
+            << QUrl(QStringLiteral("onedrive://"))
             << QString()
             << QString()
             << QStringList();
 
     QTest::newRow("account root url")
-            << QUrl(QStringLiteral("gdrive:///foo@gmail.com"))
-            << QStringLiteral("foo@gmail.com")
+            << QUrl(QStringLiteral("onedrive:///foo@outlook.com"))
+            << QStringLiteral("foo@outlook.com")
             << QStringLiteral("/")
-            << QStringList {QStringLiteral("foo@gmail.com")};
+            << QStringList {QStringLiteral("foo@outlook.com")};
 
     QTest::newRow("file in account root")
-            << QUrl(QStringLiteral("gdrive:///foo@gmail.com/bar.txt"))
-            << QStringLiteral("foo@gmail.com")
-            << QStringLiteral("/foo@gmail.com")
-            << QStringList {QStringLiteral("foo@gmail.com"), QStringLiteral("bar.txt")};
+            << QUrl(QStringLiteral("onedrive:///foo@outlook.com/bar.txt"))
+            << QStringLiteral("foo@outlook.com")
+            << QStringLiteral("/foo@outlook.com")
+            << QStringList {QStringLiteral("foo@outlook.com"), QStringLiteral("bar.txt")};
 
     QTest::newRow("folder in account root - no trailing slash")
-            << QUrl(QStringLiteral("gdrive:///foo@gmail.com/bar"))
-            << QStringLiteral("foo@gmail.com")
-            << QStringLiteral("/foo@gmail.com")
-            << QStringList {QStringLiteral("foo@gmail.com"), QStringLiteral("bar")};
+            << QUrl(QStringLiteral("onedrive:///foo@outlook.com/bar"))
+            << QStringLiteral("foo@outlook.com")
+            << QStringLiteral("/foo@outlook.com")
+            << QStringList {QStringLiteral("foo@outlook.com"), QStringLiteral("bar")};
     QTest::newRow("folder in account root - trailing slash")
-            << QUrl(QStringLiteral("gdrive:///foo@gmail.com/bar/"))
-            << QStringLiteral("foo@gmail.com")
-            << QStringLiteral("/foo@gmail.com")
-            << QStringList {QStringLiteral("foo@gmail.com"), QStringLiteral("bar")};
+            << QUrl(QStringLiteral("onedrive:///foo@outlook.com/bar/"))
+            << QStringLiteral("foo@outlook.com")
+            << QStringLiteral("/foo@outlook.com")
+            << QStringList {QStringLiteral("foo@outlook.com"), QStringLiteral("bar")};
 
     QTest::newRow("file in subfolder")
-            << QUrl(QStringLiteral("gdrive:///foo@gmail.com/bar/baz.txt"))
-            << QStringLiteral("foo@gmail.com")
-            << QStringLiteral("/foo@gmail.com/bar")
-            << QStringList {QStringLiteral("foo@gmail.com"), QStringLiteral("bar"), QStringLiteral("baz.txt")};
+            << QUrl(QStringLiteral("onedrive:///foo@outlook.com/bar/baz.txt"))
+            << QStringLiteral("foo@outlook.com")
+            << QStringLiteral("/foo@outlook.com/bar")
+            << QStringList {QStringLiteral("foo@outlook.com"), QStringLiteral("bar"), QStringLiteral("baz.txt")};
 }
 
-void UrlTest::testGDriveUrl()
+void UrlTest::testOneDriveUrl()
 {
     QFETCH(QUrl, url);
     QFETCH(QString, expectedAccount);
     QFETCH(QString, expectedParentPath);
     QFETCH(QStringList, expectedPathComponents);
 
-    const auto gdriveUrl = GDriveUrl(url);
+    const auto onedriveUrl = OneDriveUrl(url);
 
-    QCOMPARE(gdriveUrl.account(), expectedAccount);
-    QCOMPARE(gdriveUrl.parentPath(), expectedParentPath);
-    QCOMPARE(gdriveUrl.pathComponents(), expectedPathComponents);
+    QCOMPARE(onedriveUrl.account(), expectedAccount);
+    QCOMPARE(onedriveUrl.parentPath(), expectedParentPath);
+    QCOMPARE(onedriveUrl.pathComponents(), expectedPathComponents);
 
     if (expectedPathComponents.isEmpty()) {
-        QVERIFY(gdriveUrl.isRoot());
+        QVERIFY(onedriveUrl.isRoot());
     } else if (expectedPathComponents.count() == 1) {
-        QVERIFY(gdriveUrl.isAccountRoot());
+        QVERIFY(onedriveUrl.isAccountRoot());
     }
 }
 

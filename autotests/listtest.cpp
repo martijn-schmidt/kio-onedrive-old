@@ -43,10 +43,10 @@ void ListTest::initTestCase()
 
 void ListTest::testListJob()
 {
-    const auto gdriveRoot = QUrl(QStringLiteral("gdrive:/"));
-    QVERIFY(gdriveRoot.isValid());
+    const auto onedriveRoot = QUrl(QStringLiteral("onedrive:/"));
+    QVERIFY(onedriveRoot.isValid());
 
-    auto listJob = KIO::listDir(gdriveRoot, KIO::HideProgressInfo);
+    auto listJob = KIO::listDir(onedriveRoot, KIO::HideProgressInfo);
     listJob->setUiDelegate(nullptr);
     QVERIFY(listJob);
 
