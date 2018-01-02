@@ -85,7 +85,7 @@ private:
     QString resolveFileIdFromPath(const QString &path, PathFlags flags = None);
 
     Action handleError(const KMGraph2::Job &job, const QUrl &url);
-    KIO::UDSEntry fileToUDSEntry(const KMGraph2::Drive::FilePtr &file, const QString &path) const;
+    KIO::UDSEntry fileToUDSEntry(const KMGraph2::OneDrive::FilePtr &file, const QString &path) const;
 
     void fileSystemFreeSpace(const QUrl &url);
 
