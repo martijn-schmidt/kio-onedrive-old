@@ -27,9 +27,9 @@ namespace OneDriveHelper
 {
     QString folderMimeType();
 
-    bool isGDocsDocument(const KMGraph2::Drive::FilePtr &file);
+    bool isGDocsDocument(const KMGraph2::OneDrive::FilePtr &file);
 
-    QUrl convertFromGDocs(KMGraph2::Drive::FilePtr &file);
+    QUrl convertFromGDocs(KMGraph2::OneDrive::FilePtr &file);
 
     KIO::UDSEntry trash();
 }
