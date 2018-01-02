@@ -18,7 +18,7 @@
  */
 
 #include "pathcache.h"
-#include "gdrivedebug.h"
+#include "onedrivedebug.h"
 
 #include <QDateTime>
 
@@ -78,10 +78,10 @@ void PathCache::removePath(const QString &path)
 
 void PathCache::dump()
 {
-    qCDebug(GDRIVE) << "==== DUMP ====";
+    qCDebug(ONEDRIVE) << "==== DUMP ====";
     for (auto iter = m_pathIdMap.constBegin(); iter != m_pathIdMap.constEnd(); ++iter) {
-        qCDebug(GDRIVE) << iter.key() << " => " << iter.value();
+        qCDebug(ONEDRIVE) << iter.key() << " => " << iter.value();
     }
-    qCDebug(GDRIVE) << "==== DUMP ====";
+    qCDebug(ONEDRIVE) << "==== DUMP ====";
 }
 

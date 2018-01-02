@@ -18,7 +18,7 @@
  */
 
 #include "kaccountsmanager.h"
-#include "gdrivedebug.h"
+#include "onedrivedebug.h"
 
 #include <Accounts/Manager>
 #include <Accounts/Provider>
@@ -61,7 +61,7 @@ AccountPtr KAccountsManager::createAccount()
 
     QProcess process;
     process.start(QStringLiteral("kcmshell5"), {QStringLiteral("kcm_kaccounts")});
-    qCDebug(GDRIVE) << "Waiting for kcmshell process...";
+    qCDebug(ONEDRIVE) << "Waiting for kcmshell process...";
     if (process.waitForFinished(-1)) {
         loadAccounts();
     }
@@ -74,19 +74,19 @@ AccountPtr KAccountsManager::createAccount()
 
         // The KCM allows to add more than one account, but we can return only one from here.
         // So we just return the first new account in the set.
-        qCDebug(GDRIVE) << "New account successfully created:" << accountName;
+        qCDebug(ONEDRIVE) << "New account successfully created:" << accountName;
         return account(accountName);
     }
 
     // No accounts at all or no new account(s).
-    qCDebug(GDRIVE) << "No new account created.";
+    qCDebug(ONEDRIVE) << "No new account created.";
     return AccountPtr(new Account());
 }
 
 AccountPtr KAccountsManager::refreshAccount(const AccountPtr &account)
 {
     Q_UNUSED(account)
-    qCWarning(GDRIVE) << Q_FUNC_INFO << "not implemented.";
+    qCWarning(ONEDRIVE) << Q_FUNC_INFO << "not implemented.";
     return {};
 }
 
@@ -104,8 +104,8 @@ void KAccountsManager::removeAccount(const QString &accountName)
         auto manager = KAccounts::accountsManager();
         auto account = Accounts::Account::fromId(manager, it.key());
         Q_ASSERT(account->displayName() == accountName);
-        qCDebug(GDRIVE) << "Going to remove account:" << account->displayName();
-        account->selectService(manager->service(QStringLiteral("google-drive")));
+        qCDebug(ONEDRIVE) << "Going to remove account:" << account->displayName();
+        account->selectService(manager->service(QStringLiteral("microsoft-onedrive")));
         account->setEnabled(false);
         account->sync();
         return;
@@ -132,16 +132,16 @@ void KAccountsManager::loadAccounts()
     const auto enabledIDs = manager->accountListEnabled();
     for (const auto id : enabledIDs) {
         auto account = manager->account(id);
-        if (account->providerName() != QLatin1String("google")) {
+        if (account->providerName() != QLatin1String("microsoft")) {
             continue;
         }
-        qCDebug(GDRIVE) << "Found google-provided account:" << account->displayName();
+        qCDebug(ONEDRIVE) << "Found microsoft-provided account:" << account->displayName();
         const auto services = account->enabledServices();
         for (const auto &service : services) {
-            if (service.name() != QLatin1String("google-drive")) {
+            if (service.name() != QLatin1String("microsoft-onedrive")) {
                 continue;
             }
-            qCDebug(GDRIVE) << account->displayName() << "supports gdrive!";
+            qCDebug(ONEDRIVE) << account->displayName() << "supports onedrive!";
 
             auto job = new GetCredentialsJob(id, nullptr);
             job->exec();

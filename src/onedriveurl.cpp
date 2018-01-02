@@ -18,25 +18,47 @@
  *
  */
 
-#ifndef GDRIVEURL_U
-#define GDRIVEURL_U
+#include "onedriveurl.h"
 
-#include <QUrl>
-
-class GDriveUrl
+OneDriveUrl::OneDriveUrl(const QUrl &url)
+    : m_url(url)
 {
-public:
-    explicit GDriveUrl(const QUrl &url);
+    const auto path = url.adjusted(QUrl::StripTrailingSlash).path();
+    m_components = path.split(QLatin1Char('/'), QString::SkipEmptyParts);
+}
 
-    QString account() const;
-    bool isRoot() const;
-    bool isAccountRoot() const;
-    QString parentPath() const;
-    QStringList pathComponents() const;
+QString OneDriveUrl::account() const
+{
+    if (isRoot()) {
+        return QString();
+    }
 
-private:
-    QUrl m_url;
-    QStringList m_components;
-};
+    return m_components.at(0);
+}
 
-#endif // GDRIVEURL_U
+bool OneDriveUrl::isRoot() const
+{
+    return m_components.isEmpty();
+}
+
+bool OneDriveUrl::isAccountRoot() const
+{
+    return m_components.length() == 1;
+}
+
+QString OneDriveUrl::parentPath() const
+{
+    if (isRoot()) {
+        return QString();
+    }
+
+    auto path = m_components;
+    path.removeLast();
+
+    return QLatin1Char('/') + path.join(QLatin1Char('/'));
+}
+
+QStringList OneDriveUrl::pathComponents() const
+{
+    return m_components;
+}

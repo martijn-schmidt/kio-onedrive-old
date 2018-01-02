@@ -17,12 +17,12 @@
  *
  */
 
-#include "kio_gdrive.h"
-#include "gdrivebackend.h"
-#include "gdrivedebug.h"
-#include "gdrivehelper.h"
-#include "gdriveurl.h"
-#include "gdriveversion.h"
+#include "kio_onedrive.h"
+#include "onedrivebackend.h"
+#include "onedrivedebug.h"
+#include "onedrivehelper.h"
+#include "onedriveurl.h"
+#include "onedriveversion.h"
 
 #include <QApplication>
 #include <QUrlQuery>
@@ -58,7 +58,7 @@ using namespace Drive;
 class KIOPluginForMetaData : public QObject
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "org.kde.kio.slave.gdrive" FILE "gdrive.json")
+    Q_PLUGIN_METADATA(IID "org.kde.kio.slave.onedrive" FILE "onedrive.json")
 };
 
 extern "C"
@@ -66,38 +66,38 @@ extern "C"
     int Q_DECL_EXPORT kdemain(int argc, char **argv)
     {
         QApplication app(argc, argv);
-        app.setApplicationName(QStringLiteral("kio_gdrive"));
+        app.setApplicationName(QStringLiteral("kio_onedrive"));
 
         if (argc != 4) {
-             fprintf(stderr, "Usage: kio_gdrive protocol domain-socket1 domain-socket2\n");
+             fprintf(stderr, "Usage: kio_onedrive protocol domain-socket1 domain-socket2\n");
              exit(-1);
         }
 
-        KIOGDrive slave(argv[1], argv[2], argv[3]);
+        KIOOneDrive slave(argv[1], argv[2], argv[3]);
         slave.dispatchLoop();
         return 0;
     }
 }
 
-KIOGDrive::KIOGDrive(const QByteArray &protocol, const QByteArray &pool_socket,
+KIOOneDrive::KIOOneDrive(const QByteArray &protocol, const QByteArray &pool_socket,
                       const QByteArray &app_socket):
-    SlaveBase("gdrive", pool_socket, app_socket)
+    SlaveBase("onedrive", pool_socket, app_socket)
 {
     Q_UNUSED(protocol);
 
     m_accountManager.reset(new AccountManager);
 
-    qCDebug(GDRIVE) << "KIO GDrive ready: version" << GDRIVE_VERSION_STRING;
+    qCDebug(ONEDRIVE) << "KIO OneDrive ready: version" << ONEDRIVE_VERSION_STRING;
 }
 
-KIOGDrive::~KIOGDrive()
+KIOOneDrive::~KIOOneDrive()
 {
     closeConnection();
 }
 
-KIOGDrive::Action KIOGDrive::handleError(const KGAPI2::Job &job, const QUrl &url)
+KIOOneDrive::Action KIOOneDrive::handleError(const KGAPI2::Job &job, const QUrl &url)
 {
-    qCDebug(GDRIVE) << "Job status code:" << job.error() << "- message:" << job.errorString();
+    qCDebug(ONEDRIVE) << "Job status code:" << job.error() << "- message:" << job.errorString();
 
     switch (job.error()) {
         case KGAPI2::OK:
@@ -136,15 +136,15 @@ KIOGDrive::Action KIOGDrive::handleError(const KGAPI2::Job &job, const QUrl &url
     return Fail;
 }
 
-void KIOGDrive::fileSystemFreeSpace(const QUrl &url)
+void KIOOneDrive::fileSystemFreeSpace(const QUrl &url)
 {
-    const auto gdriveUrl = GDriveUrl(url);
-    const QString accountId = gdriveUrl.account();
+    const auto onedriveUrl = OneDriveUrl(url);
+    const QString accountId = onedriveUrl.account();
     if (accountId == QLatin1String("new-account")) {
         finished();
         return;
     }
-    if (!gdriveUrl.isRoot()) {
+    if (!onedriveUrl.isRoot()) {
         AboutFetchJob aboutFetch(getAccount(accountId));
         if (runJob(aboutFetch, url, accountId)) {
             const AboutPtr about = aboutFetch.aboutData();
@@ -159,12 +159,12 @@ void KIOGDrive::fileSystemFreeSpace(const QUrl &url)
     error(KIO::ERR_CANNOT_STAT, url.toDisplayString());
 }
 
-AccountPtr KIOGDrive::getAccount(const QString &accountName)
+AccountPtr KIOOneDrive::getAccount(const QString &accountName)
 {
     return m_accountManager->account(accountName);
 }
 
-void KIOGDrive::virtual_hook(int id, void *data)
+void KIOOneDrive::virtual_hook(int id, void *data)
 {
     switch (id) {
         case SlaveBase::GetFileSystemFreeSpace: {
@@ -177,14 +177,14 @@ void KIOGDrive::virtual_hook(int id, void *data)
     }
 }
 
-KIO::UDSEntry KIOGDrive::fileToUDSEntry(const FilePtr &origFile, const QString &path) const
+KIO::UDSEntry KIOOneDrive::fileToUDSEntry(const FilePtr &origFile, const QString &path) const
 {
     KIO::UDSEntry entry;
     bool isFolder = false;
 
     FilePtr file = origFile;
-    if (GDriveHelper::isGDocsDocument(file)) {
-        GDriveHelper::convertFromGDocs(file);
+    if (OneDriveHelper::isGDocsDocument(file)) {
+        OneDriveHelper::convertFromGDocs(file);
     }
 
     entry.insert(KIO::UDSEntry::UDS_NAME, file->title());
@@ -199,7 +199,7 @@ KIO::UDSEntry KIOGDrive::fileToUDSEntry(const FilePtr &origFile, const QString &
         entry.insert(KIO::UDSEntry::UDS_FILE_TYPE, S_IFREG);
         entry.insert(KIO::UDSEntry::UDS_MIME_TYPE, file->mimeType());
         entry.insert(KIO::UDSEntry::UDS_SIZE, file->fileSize());
-        entry.insert(KIO::UDSEntry::UDS_URL, QStringLiteral("gdrive://%1/%2?id=%3").arg(path, origFile->title(), origFile->id()));
+        entry.insert(KIO::UDSEntry::UDS_URL, QStringLiteral("onedrive://%1/%2?id=%3").arg(path, origFile->title(), origFile->id()));
     }
 
     entry.insert(KIO::UDSEntry::UDS_CREATION_TIME, file->createdDate().toTime_t());
@@ -222,12 +222,12 @@ KIO::UDSEntry KIOGDrive::fileToUDSEntry(const FilePtr &origFile, const QString &
     return entry;
 }
 
-void KIOGDrive::openConnection()
+void KIOOneDrive::openConnection()
 {
-    qCDebug(GDRIVE) << "Ready to talk to GDrive";
+    qCDebug(ONEDRIVE) << "Ready to talk to OneDrive";
 }
 
-KIO::UDSEntry KIOGDrive::accountToUDSEntry(const QString &accountNAme)
+KIO::UDSEntry KIOOneDrive::accountToUDSEntry(const QString &accountNAme)
 {
     KIO::UDSEntry entry;
 
@@ -236,32 +236,32 @@ KIO::UDSEntry KIOGDrive::accountToUDSEntry(const QString &accountNAme)
     entry.insert(KIO::UDSEntry::UDS_FILE_TYPE, S_IFDIR);
     entry.insert(KIO::UDSEntry::UDS_SIZE, 0);
     entry.insert(KIO::UDSEntry::UDS_ACCESS, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-    entry.insert(KIO::UDSEntry::UDS_ICON_NAME, QStringLiteral("folder-gdrive"));
+    entry.insert(KIO::UDSEntry::UDS_ICON_NAME, QStringLiteral("im-msn"));
 
     return entry;
 }
 
-void KIOGDrive::createAccount()
+void KIOOneDrive::createAccount()
 {
     const KGAPI2::AccountPtr account = m_accountManager->createAccount();
     if (!account->accountName().isEmpty()) {
         // Redirect to the account we just created.
-        redirection(QUrl(QStringLiteral("gdrive:/%1").arg(account->accountName())));
+        redirection(QUrl(QStringLiteral("onedrive:/%1").arg(account->accountName())));
         finished();
         return;
     }
 
     if (m_accountManager->accounts().isEmpty()) {
-        error(KIO::ERR_SLAVE_DEFINED, i18n("There are no Google Drive accounts enabled. Please add at least one."));
+        error(KIO::ERR_SLAVE_DEFINED, i18n("There are no Microsoft OneDrive accounts enabled. Please add at least one."));
         return;
     }
 
     // Redirect to the root, we already have some account.
-    redirection(QUrl(QStringLiteral("gdrive:/")));
+    redirection(QUrl(QStringLiteral("onedrive:/")));
     finished();
 }
 
-void KIOGDrive::listAccounts()
+void KIOOneDrive::listAccounts()
 {
     const auto accounts = m_accountManager->accounts();
     if (accounts.isEmpty()) {
@@ -275,7 +275,7 @@ void KIOGDrive::listAccounts()
     }
     KIO::UDSEntry newAccountEntry;
     newAccountEntry.insert(KIO::UDSEntry::UDS_NAME, QStringLiteral("new-account"));
-    newAccountEntry.insert(KIO::UDSEntry::UDS_DISPLAY_NAME, i18nc("login in a new google account", "New account"));
+    newAccountEntry.insert(KIO::UDSEntry::UDS_DISPLAY_NAME, i18nc("login in a new microsoft account", "New account"));
     newAccountEntry.insert(KIO::UDSEntry::UDS_FILE_TYPE, S_IFDIR);
     newAccountEntry.insert(KIO::UDSEntry::UDS_ICON_NAME, QStringLiteral("list-add-user"));
     listEntry(newAccountEntry);
@@ -319,9 +319,9 @@ private:
 int RecursionDepthCounter::sDepth = 0;
 
 
-QString KIOGDrive::resolveFileIdFromPath(const QString &path, PathFlags flags)
+QString KIOOneDrive::resolveFileIdFromPath(const QString &path, PathFlags flags)
 {
-    qCDebug(GDRIVE) << Q_FUNC_INFO << path;
+    qCDebug(ONEDRIVE) << Q_FUNC_INFO << path;
 
     if (path.isEmpty()) {
         return QString();
@@ -329,41 +329,41 @@ QString KIOGDrive::resolveFileIdFromPath(const QString &path, PathFlags flags)
 
     QString fileId = m_cache.idForPath(path);
     if (!fileId.isEmpty()) {
-        qCDebug(GDRIVE) << "Resolved" << path << "to" << fileId << "(from cache)";
+        qCDebug(ONEDRIVE) << "Resolved" << path << "to" << fileId << "(from cache)";
         return fileId;
     }
 
     QUrl url;
-    url.setScheme(QStringLiteral("gdrive"));
+    url.setScheme(QStringLiteral("onedrive"));
     url.setPath(path);
-    const auto gdriveUrl = GDriveUrl(url);
-    Q_ASSERT(!gdriveUrl.isRoot());
+    const auto onedriveUrl = OneDriveUrl(url);
+    Q_ASSERT(!onedriveUrl.isRoot());
 
-    const QStringList components = gdriveUrl.pathComponents();
-    if (gdriveUrl.isAccountRoot() || (components.size() == 2 && components[1] == QLatin1String("trash"))) {
-        qCDebug(GDRIVE) << "Resolved" << path << "to \"root\"";
+    const QStringList components = onedriveUrl.pathComponents();
+    if (onedriveUrl.isAccountRoot() || (components.size() == 2 && components[1] == QLatin1String("trash"))) {
+        qCDebug(ONEDRIVE) << "Resolved" << path << "to \"root\"";
         return rootFolderId(components[0]);
     }
 
     // Try to recursively resolve ID of parent path - either from cache, or by
-    // querying Google
-    const QString parentId = resolveFileIdFromPath(gdriveUrl.parentPath(), KIOGDrive::PathIsFolder);
+    // querying Microsoft
+    const QString parentId = resolveFileIdFromPath(onedriveUrl.parentPath(), KIOOneDrive::PathIsFolder);
     if (parentId.isEmpty()) {
         // We failed to resolve parent -> error
         return QString();
     }
 
     FileSearchQuery query;
-    if (flags != KIOGDrive::None) {
+    if (flags != KIOOneDrive::None) {
         query.addQuery(FileSearchQuery::MimeType,
-                       (flags & KIOGDrive::PathIsFolder ? FileSearchQuery::Equals : FileSearchQuery::NotEquals),
-                       GDriveHelper::folderMimeType());
+                       (flags & KIOOneDrive::PathIsFolder ? FileSearchQuery::Equals : FileSearchQuery::NotEquals),
+                       OneDriveHelper::folderMimeType());
     }
     query.addQuery(FileSearchQuery::Title, FileSearchQuery::Equals, components.last());
     query.addQuery(FileSearchQuery::Parents, FileSearchQuery::In, parentId);
     query.addQuery(FileSearchQuery::Trashed, FileSearchQuery::Equals, components[1] == QLatin1String("trash"));
 
-    const QString accountId = gdriveUrl.account();
+    const QString accountId = onedriveUrl.account();
     FileFetchJob fetchJob(query, getAccount(accountId));
     fetchJob.setFields(FileFetchJob::Id | FileFetchJob::Title | FileFetchJob::Labels);
     if (!runJob(fetchJob, url, accountId)) {
@@ -371,9 +371,9 @@ QString KIOGDrive::resolveFileIdFromPath(const QString &path, PathFlags flags)
     }
 
     const ObjectsList objects = fetchJob.items();
-    qCDebug(GDRIVE) << objects;
+    qCDebug(ONEDRIVE) << objects;
     if (objects.count() == 0) {
-        qCWarning(GDRIVE) << "Failed to resolve" << path;
+        qCWarning(ONEDRIVE) << "Failed to resolve" << path;
         return QString();
     }
 
@@ -381,11 +381,11 @@ QString KIOGDrive::resolveFileIdFromPath(const QString &path, PathFlags flags)
 
     m_cache.insertPath(path, file->id());
 
-    qCDebug(GDRIVE) << "Resolved" << path << "to" << file->id() << "(from network)";
+    qCDebug(ONEDRIVE) << "Resolved" << path << "to" << file->id() << "(from network)";
     return file->id();
 }
 
-QString KIOGDrive::rootFolderId(const QString &accountId)
+QString KIOOneDrive::rootFolderId(const QString &accountId)
 {
     auto it = m_rootIds.constFind(accountId);
     if (it == m_rootIds.cend()) {
@@ -397,7 +397,7 @@ QString KIOGDrive::rootFolderId(const QString &accountId)
 
         const AboutPtr about = aboutFetch.aboutData();
         if (!about || about->rootFolderId().isEmpty()) {
-            qCWarning(GDRIVE) << "Failed to obtain root ID";
+            qCWarning(ONEDRIVE) << "Failed to obtain root ID";
             return QString();
         }
 
@@ -408,28 +408,28 @@ QString KIOGDrive::rootFolderId(const QString &accountId)
     return *it;
 }
 
-void KIOGDrive::listDir(const QUrl &url)
+void KIOOneDrive::listDir(const QUrl &url)
 {
-    qCDebug(GDRIVE) << "Going to list" << url;
+    qCDebug(ONEDRIVE) << "Going to list" << url;
 
-    const auto gdriveUrl = GDriveUrl(url);
-    const QString accountId = gdriveUrl.account();
+    const auto onedriveUrl = OneDriveUrl(url);
+    const QString accountId = onedriveUrl.account();
     if (accountId == QLatin1String("new-account")) {
         createAccount();
         return;
     }
 
     QString folderId;
-    if (gdriveUrl.isRoot())  {
+    if (onedriveUrl.isRoot())  {
         listAccounts();
         return;
-    } else if (gdriveUrl.isAccountRoot()) {
+    } else if (onedriveUrl.isAccountRoot()) {
         folderId = rootFolderId(accountId);
     } else {
         folderId = m_cache.idForPath(url.path());
         if (folderId.isEmpty()) {
             folderId = resolveFileIdFromPath(url.adjusted(QUrl::StripTrailingSlash).path(),
-                                             KIOGDrive::PathIsFolder);
+                                             KIOOneDrive::PathIsFolder);
         }
         if (folderId.isEmpty()) {
             error(KIO::ERR_DOES_NOT_EXIST, url.path());
@@ -470,28 +470,28 @@ void KIOGDrive::listDir(const QUrl &url)
 }
 
 
-void KIOGDrive::mkdir(const QUrl &url, int permissions)
+void KIOOneDrive::mkdir(const QUrl &url, int permissions)
 {
-    // NOTE: We deliberately ignore the permissions field here, because GDrive
+    // NOTE: We deliberately ignore the permissions field here, because OneDrive
     // does not recognize any privileges that could be mapped to standard UNIX
     // file permissions.
     Q_UNUSED(permissions);
 
-    qCDebug(GDRIVE) << "Creating directory" << url;
+    qCDebug(ONEDRIVE) << "Creating directory" << url;
 
-    const auto gdriveUrl = GDriveUrl(url);
-    const QString accountId = gdriveUrl.account();
+    const auto onedriveUrl = OneDriveUrl(url);
+    const QString accountId = onedriveUrl.account();
     // At least account and new folder name
-    if (gdriveUrl.isRoot() || gdriveUrl.isAccountRoot()) {
+    if (onedriveUrl.isRoot() || onedriveUrl.isAccountRoot()) {
         error(KIO::ERR_DOES_NOT_EXIST, url.path());
         return;
     }
     QString parentId;
-    const auto components = gdriveUrl.pathComponents();
+    const auto components = onedriveUrl.pathComponents();
     if (components.size() == 2) {
         parentId = rootFolderId(accountId);
     } else {
-        parentId = resolveFileIdFromPath(gdriveUrl.parentPath(), KIOGDrive::PathIsFolder);
+        parentId = resolveFileIdFromPath(onedriveUrl.parentPath(), KIOOneDrive::PathIsFolder);
     }
 
     if (parentId.isEmpty()) {
@@ -514,18 +514,18 @@ void KIOGDrive::mkdir(const QUrl &url, int permissions)
     finished();
 }
 
-void KIOGDrive::stat(const QUrl &url)
+void KIOOneDrive::stat(const QUrl &url)
 {
-    qCDebug(GDRIVE) << "Going to stat()" << url;
+    qCDebug(ONEDRIVE) << "Going to stat()" << url;
 
-    const auto gdriveUrl = GDriveUrl(url);
-    const QString accountId = gdriveUrl.account();
-    if (gdriveUrl.isRoot()) {
+    const auto onedriveUrl = OneDriveUrl(url);
+    const QString accountId = onedriveUrl.account();
+    if (onedriveUrl.isRoot()) {
         // TODO Can we stat() root?
         finished();
         return;
     }
-    if (gdriveUrl.isAccountRoot()) {
+    if (onedriveUrl.isAccountRoot()) {
         const KIO::UDSEntry entry = accountToUDSEntry(accountId);
         statEntry(entry);
         finished();
@@ -537,7 +537,7 @@ void KIOGDrive::stat(const QUrl &url)
         = urlQuery.hasQueryItem(QStringLiteral("id"))
             ? urlQuery.queryItemValue(QStringLiteral("id"))
             : resolveFileIdFromPath(url.adjusted(QUrl::StripTrailingSlash).path(),
-                                    KIOGDrive::None);
+                                    KIOOneDrive::None);
     if (fileId.isEmpty()) {
         error(KIO::ERR_DOES_NOT_EXIST, url.path());
         return;
@@ -558,24 +558,24 @@ void KIOGDrive::stat(const QUrl &url)
         return;
     }
 
-    const KIO::UDSEntry entry = fileToUDSEntry(file, gdriveUrl.parentPath());
+    const KIO::UDSEntry entry = fileToUDSEntry(file, onedriveUrl.parentPath());
 
     statEntry(entry);
     finished();
 }
 
-void KIOGDrive::get(const QUrl &url)
+void KIOOneDrive::get(const QUrl &url)
 {
-    qCDebug(GDRIVE) << "Fetching content of" << url;
+    qCDebug(ONEDRIVE) << "Fetching content of" << url;
 
-    const auto gdriveUrl = GDriveUrl(url);
-    const QString accountId = gdriveUrl.account();
+    const auto onedriveUrl = OneDriveUrl(url);
+    const QString accountId = onedriveUrl.account();
 
-    if (gdriveUrl.isRoot()) {
+    if (onedriveUrl.isRoot()) {
         error(KIO::ERR_DOES_NOT_EXIST, url.path());
         return;
     }
-    if (gdriveUrl.isAccountRoot()) {
+    if (onedriveUrl.isAccountRoot()) {
         // You cannot GET an account folder!
         error(KIO::ERR_ACCESS_DENIED, url.path());
         return;
@@ -586,7 +586,7 @@ void KIOGDrive::get(const QUrl &url)
         urlQuery.hasQueryItem(QStringLiteral("id"))
             ? urlQuery.queryItemValue(QStringLiteral("id"))
             : resolveFileIdFromPath(url.adjusted(QUrl::StripTrailingSlash).path(),
-                                    KIOGDrive::PathIsFile);
+                                    KIOOneDrive::PathIsFile);
     if (fileId.isEmpty()) {
         error(KIO::ERR_DOES_NOT_EXIST, url.path());
         return;
@@ -607,8 +607,8 @@ void KIOGDrive::get(const QUrl &url)
 
     FilePtr file = objects.first().dynamicCast<File>();
     QUrl downloadUrl;
-    if (GDriveHelper::isGDocsDocument(file)) {
-        downloadUrl = GDriveHelper::convertFromGDocs(file);
+    if (OneDriveHelper::isGDocsDocument(file)) {
+        downloadUrl = OneDriveHelper::convertFromGDocs(file);
     } else {
         downloadUrl = file->downloadUrl();
     }
@@ -622,7 +622,7 @@ void KIOGDrive::get(const QUrl &url)
     finished();
 }
 
-bool KIOGDrive::readPutData(QTemporaryFile &tempFile)
+bool KIOOneDrive::readPutData(QTemporaryFile &tempFile)
 {
     // TODO: Instead of using a temp file, upload directly the raw data (requires
     // support in LibKGAPI)
@@ -653,7 +653,7 @@ bool KIOGDrive::readPutData(QTemporaryFile &tempFile)
     tempFile.close();
 
     if (result == -1) {
-        qCWarning(GDRIVE) << "Could not read source file" << tempFile.fileName();
+        qCWarning(ONEDRIVE) << "Could not read source file" << tempFile.fileName();
         error(KIO::ERR_CANNOT_READ, QString());
         return false;
     }
@@ -661,19 +661,19 @@ bool KIOGDrive::readPutData(QTemporaryFile &tempFile)
     return true;
 }
 
-bool KIOGDrive::runJob(KGAPI2::Job &job, const QUrl &url, const QString &accountId)
+bool KIOOneDrive::runJob(KGAPI2::Job &job, const QUrl &url, const QString &accountId)
 {
-    KIOGDrive::Action action = KIOGDrive::Fail;
+    KIOOneDrive::Action action = KIOOneDrive::Fail;
     Q_FOREVER {
-        qCDebug(GDRIVE) << "Running job" << (&job) << "with accessToken" << job.account()->accessToken();
+        qCDebug(ONEDRIVE) << "Running job" << (&job) << "with accessToken" << job.account()->accessToken();
         QEventLoop eventLoop;
         QObject::connect(&job, &KGAPI2::Job::finished,
                          &eventLoop, &QEventLoop::quit);
         eventLoop.exec();
         action = handleError(job, url);
-        if (action == KIOGDrive::Success) {
+        if (action == KIOOneDrive::Success) {
             break;
-        } else if (action == KIOGDrive::Fail) {
+        } else if (action == KIOOneDrive::Fail) {
             return false;
         }
         job.setAccount(getAccount(accountId));
@@ -683,13 +683,13 @@ bool KIOGDrive::runJob(KGAPI2::Job &job, const QUrl &url, const QString &account
     return true;
 }
 
-bool KIOGDrive::putUpdate(const QUrl &url)
+bool KIOOneDrive::putUpdate(const QUrl &url)
 {
     const QString fileId = QUrlQuery(url).queryItemValue(QStringLiteral("id"));
-    qCDebug(GDRIVE) << Q_FUNC_INFO << url << fileId;
+    qCDebug(ONEDRIVE) << Q_FUNC_INFO << url << fileId;
 
-    const auto gdriveUrl = GDriveUrl(url);
-    const auto accountId = gdriveUrl.account();
+    const auto onedriveUrl = OneDriveUrl(url);
+    const auto accountId = onedriveUrl.account();
 
     FileFetchJob fetchJob(fileId, getAccount(accountId));
     if (!runJob(fetchJob, url, accountId)) {
@@ -718,21 +718,21 @@ bool KIOGDrive::putUpdate(const QUrl &url)
     return true;
 }
 
-bool KIOGDrive::putCreate(const QUrl &url)
+bool KIOOneDrive::putCreate(const QUrl &url)
 {
-    qCDebug(GDRIVE) << Q_FUNC_INFO << url;
+    qCDebug(ONEDRIVE) << Q_FUNC_INFO << url;
     ParentReferencesList parentReferences;
 
-    const auto gdriveUrl = GDriveUrl(url);
-    if (gdriveUrl.isRoot() || gdriveUrl.isAccountRoot()) {
+    const auto onedriveUrl = OneDriveUrl(url);
+    if (onedriveUrl.isRoot() || onedriveUrl.isAccountRoot()) {
         error(KIO::ERR_ACCESS_DENIED, url.path());
         return false;
     }
-    const auto components = gdriveUrl.pathComponents();
+    const auto components = onedriveUrl.pathComponents();
     if (components.length() == 2) {
         // Creating in root directory
     } else {
-        const QString parentId = resolveFileIdFromPath(gdriveUrl.parentPath());
+        const QString parentId = resolveFileIdFromPath(onedriveUrl.parentPath());
         if (parentId.isEmpty()) {
             error(KIO::ERR_DOES_NOT_EXIST, url.adjusted(QUrl::RemoveFilename|QUrl::StripTrailingSlash).path());
             return false;
@@ -746,7 +746,7 @@ bool KIOGDrive::putCreate(const QUrl &url)
     /*
     if (hasMetaData(QLatin1String("modified"))) {
         const QString modified = metaData(QLatin1String("modified"));
-        qCDebug(GDRIVE) << modified;
+        qCDebug(ONEDRIVE) << modified;
         file->setModifiedDate(KDateTime::fromString(modified, KDateTime::ISODate));
     }
     */
@@ -757,7 +757,7 @@ bool KIOGDrive::putCreate(const QUrl &url)
         return false;
     }
 
-    const auto accountId = gdriveUrl.account();
+    const auto accountId = onedriveUrl.account();
     FileCreateJob createJob(tmpFile.fileName(), file, getAccount(accountId));
     if (!runJob(createJob, url, accountId)) {
         return false;
@@ -767,15 +767,15 @@ bool KIOGDrive::putCreate(const QUrl &url)
 }
 
 
-void KIOGDrive::put(const QUrl &url, int permissions, KIO::JobFlags flags)
+void KIOOneDrive::put(const QUrl &url, int permissions, KIO::JobFlags flags)
 {
-    // NOTE: We deliberately ignore the permissions field here, because GDrive
+    // NOTE: We deliberately ignore the permissions field here, because OneDrive
     // does not recognize any privileges that could be mapped to standard UNIX
     // file permissions.
     Q_UNUSED(permissions)
     Q_UNUSED(flags)
 
-    qCDebug(GDRIVE) << Q_FUNC_INFO << url;
+    qCDebug(ONEDRIVE) << Q_FUNC_INFO << url;
 
     if (QUrlQuery(url).hasQueryItem(QStringLiteral("id"))) {
         if (!putUpdate(url)) {
@@ -793,26 +793,26 @@ void KIOGDrive::put(const QUrl &url, int permissions, KIO::JobFlags flags)
 }
 
 
-void KIOGDrive::copy(const QUrl &src, const QUrl &dest, int permissions, KIO::JobFlags flags)
+void KIOOneDrive::copy(const QUrl &src, const QUrl &dest, int permissions, KIO::JobFlags flags)
 {
-    qCDebug(GDRIVE) << "Going to copy" << src << "to" << dest;
+    qCDebug(ONEDRIVE) << "Going to copy" << src << "to" << dest;
 
-    // NOTE: We deliberately ignore the permissions field here, because GDrive
+    // NOTE: We deliberately ignore the permissions field here, because OneDrive
     // does not recognize any privileges that could be mapped to standard UNIX
     // file permissions.
     Q_UNUSED(permissions);
 
     // NOTE: We deliberately ignore the flags field here, because the "overwrite"
-    // flag would have no effect on GDrive, since file name don't have to be
+    // flag would have no effect on OneDrive, since file name don't have to be
     // unique. IOW if there is a file "foo.bar" and user copy-pastes into the
     // same directory, the FileCopyJob will succeed and a new file with the same
     // name will be created.
     Q_UNUSED(flags);
 
-    const auto srcGDriveUrl = GDriveUrl(src);
-    const auto destGDriveUrl = GDriveUrl(dest);
-    const QString sourceAccountId = srcGDriveUrl.account();
-    const QString destAccountId = destGDriveUrl.account();
+    const auto srcOneDriveUrl = OneDriveUrl(src);
+    const auto destOneDriveUrl = OneDriveUrl(dest);
+    const QString sourceAccountId = srcOneDriveUrl.account();
+    const QString destAccountId = destOneDriveUrl.account();
 
     // TODO: Does this actually happen, or does KIO treat our account name as host?
     if (sourceAccountId != destAccountId) {
@@ -821,11 +821,11 @@ void KIOGDrive::copy(const QUrl &src, const QUrl &dest, int permissions, KIO::Jo
         return;
     }
 
-    if (srcGDriveUrl.isRoot()) {
+    if (srcOneDriveUrl.isRoot()) {
         error(KIO::ERR_DOES_NOT_EXIST, src.path());
         return;
     }
-    if (srcGDriveUrl.isAccountRoot()) {
+    if (srcOneDriveUrl.isAccountRoot()) {
         error(KIO::ERR_ACCESS_DENIED, src.path());
         return;
     }
@@ -853,12 +853,12 @@ void KIOGDrive::copy(const QUrl &src, const QUrl &dest, int permissions, KIO::Jo
     const FilePtr sourceFile = objects[0].dynamicCast<File>();
 
     ParentReferencesList destParentReferences;
-    if (destGDriveUrl.isRoot()) {
+    if (destOneDriveUrl.isRoot()) {
         error(KIO::ERR_ACCESS_DENIED, dest.path());
         return;
     }
-    const auto destPathComps = destGDriveUrl.pathComponents();
-    if (destGDriveUrl.isAccountRoot()) {
+    const auto destPathComps = destOneDriveUrl.pathComponents();
+    if (destOneDriveUrl.isAccountRoot()) {
         // copy to root
     } else {
         const QString destDirId = destPathComps[destPathComps.count() - 2];
@@ -879,7 +879,7 @@ void KIOGDrive::copy(const QUrl &src, const QUrl &dest, int permissions, KIO::Jo
     finished();
 }
 
-void KIOGDrive::del(const QUrl &url, bool isfile)
+void KIOOneDrive::del(const QUrl &url, bool isfile)
 {
     // FIXME: Verify that a single file cannot actually have multiple parent
     // references. If it can, then we need to be more careful: currently this
@@ -888,28 +888,28 @@ void KIOGDrive::del(const QUrl &url, bool isfile)
 
     // FIXME: Because of the above, we are not really deleting the file, but only
     // moving it to trash - so if users really really really wants to delete the
-    // file, they have to go to GDrive web interface and delete it there. I think
+    // file, they have to go to OneDrive web interface and delete it there. I think
     // that we should do the DELETE operation here, because for trash people have
     // their local trashes. This however requires fixing the first FIXME first,
     // otherwise we are risking severe data loss.
 
-    qCDebug(GDRIVE) << "Deleting URL" << url << "- is it a file?" << isfile;
+    qCDebug(ONEDRIVE) << "Deleting URL" << url << "- is it a file?" << isfile;
 
     const QUrlQuery urlQuery(url);
     const QString fileId
         = isfile && urlQuery.hasQueryItem(QStringLiteral("id"))
             ? urlQuery.queryItemValue(QStringLiteral("id"))
             : resolveFileIdFromPath(url.adjusted(QUrl::StripTrailingSlash).path(),
-                                    isfile ? KIOGDrive::PathIsFile : KIOGDrive::PathIsFolder);
+                                    isfile ? KIOOneDrive::PathIsFile : KIOOneDrive::PathIsFolder);
     if (fileId.isEmpty()) {
         error(KIO::ERR_DOES_NOT_EXIST, url.path());
         return;
     }
-    const auto gdriveUrl = GDriveUrl(url);
-    const QString accountId = gdriveUrl.account();
+    const auto onedriveUrl = OneDriveUrl(url);
+    const QString accountId = onedriveUrl.account();
 
     // If user tries to delete the account folder, remove the account from the keychain
-    if (gdriveUrl.isAccountRoot()) {
+    if (onedriveUrl.isAccountRoot()) {
         const KGAPI2::AccountPtr account = getAccount(accountId);
         if (account->accountName().isEmpty()) {
             error(KIO::ERR_DOES_NOT_EXIST, accountId);
@@ -920,7 +920,7 @@ void KIOGDrive::del(const QUrl &url, bool isfile)
         return;
     }
 
-    // GDrive allows us to delete entire directory even when it's not empty,
+    // OneDrive allows us to delete entire directory even when it's not empty,
     // so we need to emulate the normal behavior ourselves by checking number of
     // child references
     if (!isfile) {
@@ -943,15 +943,15 @@ void KIOGDrive::del(const QUrl &url, bool isfile)
 
 }
 
-void KIOGDrive::rename(const QUrl &src, const QUrl &dest, KIO::JobFlags flags)
+void KIOOneDrive::rename(const QUrl &src, const QUrl &dest, KIO::JobFlags flags)
 {
     Q_UNUSED(flags)
-    qCDebug(GDRIVE) << "Renaming" << src << "to" << dest;
+    qCDebug(ONEDRIVE) << "Renaming" << src << "to" << dest;
 
-    const auto srcGDriveUrl = GDriveUrl(src);
-    const auto destGDriveUrl = GDriveUrl(dest);
-    const QString sourceAccountId = srcGDriveUrl.account();
-    const QString destAccountId = destGDriveUrl.account();
+    const auto srcOneDriveUrl = OneDriveUrl(src);
+    const auto destOneDriveUrl = OneDriveUrl(dest);
+    const QString sourceAccountId = srcOneDriveUrl.account();
+    const QString destAccountId = destOneDriveUrl.account();
 
     // TODO: Does this actually happen, or does KIO treat our account name as host?
     if (sourceAccountId != destAccountId) {
@@ -959,11 +959,11 @@ void KIOGDrive::rename(const QUrl &src, const QUrl &dest, KIO::JobFlags flags)
         return;
     }
 
-    if (srcGDriveUrl.isRoot()) {
+    if (srcOneDriveUrl.isRoot()) {
         error(KIO::ERR_DOES_NOT_EXIST, dest.path());
         return;
     }
-    if (srcGDriveUrl.isAccountRoot()) {
+    if (srcOneDriveUrl.isAccountRoot()) {
         error(KIO::ERR_ACCESS_DENIED, dest.path());
         return;
     }
@@ -973,7 +973,7 @@ void KIOGDrive::rename(const QUrl &src, const QUrl &dest, KIO::JobFlags flags)
         = urlQuery.hasQueryItem(QStringLiteral("id"))
             ? urlQuery.queryItemValue(QStringLiteral("id"))
             : resolveFileIdFromPath(src.adjusted(QUrl::StripTrailingSlash).path(),
-                                    KIOGDrive::PathIsFile);
+                                    KIOOneDrive::PathIsFile);
     if (sourceFileId.isEmpty()) {
         error(KIO::ERR_DOES_NOT_EXIST, src.path());
         return;
@@ -985,7 +985,7 @@ void KIOGDrive::rename(const QUrl &src, const QUrl &dest, KIO::JobFlags flags)
 
     const ObjectsList objects = sourceFileFetchJob.items();
     if (objects.count() != 1) {
-        qCDebug(GDRIVE) << "FileFetchJob retrieved" << objects.count() << "items, while only one was expected.";
+        qCDebug(ONEDRIVE) << "FileFetchJob retrieved" << objects.count() << "items, while only one was expected.";
         error(KIO::ERR_DOES_NOT_EXIST, src.path());
         return;
     }
@@ -993,19 +993,19 @@ void KIOGDrive::rename(const QUrl &src, const QUrl &dest, KIO::JobFlags flags)
     const FilePtr sourceFile = objects[0].dynamicCast<File>();
 
     ParentReferencesList parentReferences = sourceFile->parents();
-    if (destGDriveUrl.isRoot()) {
-        // user is trying to move to top-level gdrive:///
+    if (destOneDriveUrl.isRoot()) {
+        // user is trying to move to top-level onedrive:///
         error(KIO::ERR_ACCESS_DENIED, dest.fileName());
         return;
     }
-    const auto srcPathComps = srcGDriveUrl.pathComponents();
-    const auto destPathComps = destGDriveUrl.pathComponents();
-    if (destGDriveUrl.isAccountRoot()) {
+    const auto srcPathComps = srcOneDriveUrl.pathComponents();
+    const auto destPathComps = destOneDriveUrl.pathComponents();
+    if (destOneDriveUrl.isAccountRoot()) {
         // user is trying to move to root -> we are only renaming
     } else {
          // skip filename and extract the second-to-last component
-        const QString destDirId = resolveFileIdFromPath(destGDriveUrl.parentPath(), KIOGDrive::PathIsFolder);
-        const QString srcDirId = resolveFileIdFromPath(srcGDriveUrl.parentPath(), KIOGDrive::PathIsFolder);
+        const QString destDirId = resolveFileIdFromPath(destOneDriveUrl.parentPath(), KIOOneDrive::PathIsFolder);
+        const QString srcDirId = resolveFileIdFromPath(srcOneDriveUrl.parentPath(), KIOOneDrive::PathIsFolder);
 
         // Remove source from parent references
         auto iter = parentReferences.begin();
@@ -1020,7 +1020,7 @@ void KIOGDrive::rename(const QUrl &src, const QUrl &dest, KIO::JobFlags flags)
             ++iter;
         }
         if (!removed) {
-            qCDebug(GDRIVE) << "Could not remove" << src << "from parent references.";
+            qCDebug(ONEDRIVE) << "Could not remove" << src << "from parent references.";
             error(KIO::ERR_DOES_NOT_EXIST, src.path());
             return;
         }
@@ -1042,9 +1042,9 @@ void KIOGDrive::rename(const QUrl &src, const QUrl &dest, KIO::JobFlags flags)
     finished();
 }
 
-void KIOGDrive::mimetype(const QUrl &url)
+void KIOOneDrive::mimetype(const QUrl &url)
 {
-    qCDebug(GDRIVE) << Q_FUNC_INFO << url;
+    qCDebug(ONEDRIVE) << Q_FUNC_INFO << url;
 
     const QUrlQuery urlQuery(url);
     const QString fileId
@@ -1055,7 +1055,7 @@ void KIOGDrive::mimetype(const QUrl &url)
         error(KIO::ERR_DOES_NOT_EXIST, url.path());
         return;
     }
-    const QString accountId = GDriveUrl(url).account();
+    const QString accountId = OneDriveUrl(url).account();
 
     FileFetchJob fileFetchJob(fileId, getAccount(accountId));
     fileFetchJob.setFields(FileFetchJob::Id | FileFetchJob::MimeType);
@@ -1072,4 +1072,4 @@ void KIOGDrive::mimetype(const QUrl &url)
     finished();
 }
 
-#include "kio_gdrive.moc"
+#include "kio_onedrive.moc"

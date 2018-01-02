@@ -19,7 +19,7 @@
  */
 
 #include "keychainaccountmanager.h"
-#include "gdrivedebug.h"
+#include "onedrivedebug.h"
 
 #include <QDataStream>
 #include <QEventLoop>
@@ -36,14 +36,14 @@ QString KeychainAccountManager::s_apiSecret = QStringLiteral("mdT1DjzohxN3npUUzk
 QSet<QString> KeychainAccountManager::accounts()
 {
     if (m_accounts.isEmpty()) {
-        auto job = new QKeychain::ReadPasswordJob(QStringLiteral("KIO GDrive"));
-        job->setKey(QStringLiteral("gdrive-accounts"));
+        auto job = new QKeychain::ReadPasswordJob(QStringLiteral("KIO OneDrive"));
+        job->setKey(QStringLiteral("onedrive-accounts"));
         runKeychainJob(job);
 
         auto data = job->binaryData();
         m_accounts = deserialize<QSet<QString>>(&data);
 
-        qCDebug(GDRIVE) << "Fetched" << m_accounts.count() << "account(s) from keychain";
+        qCDebug(ONEDRIVE) << "Fetched" << m_accounts.count() << "account(s) from keychain";
     }
 
     return m_accounts;
@@ -96,7 +96,7 @@ KGAPI2::AccountPtr KeychainAccountManager::createAccount()
 
 void KeychainAccountManager::storeAccount(const KGAPI2::AccountPtr &account)
 {
-    qCDebug(GDRIVE) << "Storing account" << account->accessToken();
+    qCDebug(ONEDRIVE) << "Storing account" << account->accessToken();
 
     QMap<QString, QString> entry;
     entry[ QStringLiteral("accessToken") ] = account->accessToken();
@@ -134,8 +134,8 @@ void KeychainAccountManager::removeAccountName(const QString &accountName)
 
     const auto data = serialize<QSet<QString>>(accounts);
 
-    auto job = new QKeychain::WritePasswordJob(QStringLiteral("KIO GDrive"));
-    job->setKey(QStringLiteral("gdrive-accounts"));
+    auto job = new QKeychain::WritePasswordJob(QStringLiteral("KIO OneDrive"));
+    job->setKey(QStringLiteral("onedrive-accounts"));
     job->setBinaryData(data);
     runKeychainJob(job);
 
@@ -149,8 +149,8 @@ void KeychainAccountManager::storeAccountName(const QString &accountName)
 
     const auto data = serialize<QSet<QString>>(accounts);
 
-    auto job = new QKeychain::WritePasswordJob(QStringLiteral("KIO GDrive"));
-    job->setKey(QStringLiteral("gdrive-accounts"));
+    auto job = new QKeychain::WritePasswordJob(QStringLiteral("KIO OneDrive"));
+    job->setKey(QStringLiteral("onedrive-accounts"));
     job->setBinaryData(data);
     runKeychainJob(job);
 
@@ -159,7 +159,7 @@ void KeychainAccountManager::storeAccountName(const QString &accountName)
 
 QMap<QString, QString> KeychainAccountManager::readMap(const QString &accountName)
 {
-    auto job = new QKeychain::ReadPasswordJob(QStringLiteral("KIO GDrive"));
+    auto job = new QKeychain::ReadPasswordJob(QStringLiteral("KIO OneDrive"));
     job->setKey(accountName);
     runKeychainJob(job);
 
@@ -175,7 +175,7 @@ void KeychainAccountManager::writeMap(const QString &accountName, const QMap<QSt
 {
     const auto data = serialize<QMap<QString, QString>>(map);
 
-    auto job = new QKeychain::WritePasswordJob(QStringLiteral("KIO GDrive"));
+    auto job = new QKeychain::WritePasswordJob(QStringLiteral("KIO OneDrive"));
     job->setKey(accountName);
     job->setBinaryData(data);
     runKeychainJob(job);
@@ -188,17 +188,17 @@ void KeychainAccountManager::runKeychainJob(QKeychain::Job *job)
         case QKeychain::NoError:
             return;
         case QKeychain::EntryNotFound:
-            qCDebug(GDRIVE) << "Keychain job could not find key" << job->key();
+            qCDebug(ONEDRIVE) << "Keychain job could not find key" << job->key();
             return;
         case QKeychain::CouldNotDeleteEntry:
-            qCDebug(GDRIVE) << "Keychain job could not delete key" << job->key();
+            qCDebug(ONEDRIVE) << "Keychain job could not delete key" << job->key();
             return;
         case QKeychain::AccessDenied:
         case QKeychain::AccessDeniedByUser:
-            qCDebug(GDRIVE) << "Keychain job could not access the system keychain";
+            qCDebug(ONEDRIVE) << "Keychain job could not access the system keychain";
             break;
         default:
-            qCDebug(GDRIVE) << "Keychain job failed:" << job->error() << "-" << job->errorString();
+            qCDebug(ONEDRIVE) << "Keychain job failed:" << job->error() << "-" << job->errorString();
             return;
         }
     });
@@ -211,7 +211,7 @@ void KeychainAccountManager::runKeychainJob(QKeychain::Job *job)
 
 void KeychainAccountManager::removeAccount(const QString &accountName)
 {
-    auto job = new QKeychain::DeletePasswordJob(QStringLiteral("KIO GDrive"));
+    auto job = new QKeychain::DeletePasswordJob(QStringLiteral("KIO OneDrive"));
     job->setKey(accountName);
     runKeychainJob(job);
     removeAccountName(accountName);

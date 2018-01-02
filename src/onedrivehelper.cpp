@@ -17,7 +17,7 @@
  *
  */
 
-#include "gdrivehelper.h"
+#include "onedrivehelper.h"
 
 #include <KIO/Job>
 #include <KGAPI/Drive/File>
@@ -48,7 +48,7 @@ using namespace KGAPI2::Drive;
 #define IMAGE_JPEG                      QStringLiteral("image/jpeg")
 #define APPLICATION_PDF                 QStringLiteral("application/pdf")
 
-namespace GDriveHelper {
+namespace OneDriveHelper {
 
 static const QMap<QString /* mimetype */, QString /* .ext */> ExtensionsMap{
     { VND_OASIS_OPENDOCUMENT_TEXT, QStringLiteral(".odt") },
@@ -87,21 +87,21 @@ static const QMap<QString /* mimetype */, QStringList /* target mimetypes */ > C
 
 }
 
-QString GDriveHelper::folderMimeType()
+QString OneDriveHelper::folderMimeType()
 {
     return VND_GOOGLE_APPS_FOLDER;
 }
 
-bool GDriveHelper::isGDocsDocument(const KGAPI2::Drive::FilePtr &file)
+bool OneDriveHelper::isGDocsDocument(const KGAPI2::Drive::FilePtr &file)
 {
-    return GDriveHelper::ConversionMap.contains(file->mimeType());
+    return OneDriveHelper::ConversionMap.contains(file->mimeType());
 }
 
-QUrl GDriveHelper::convertFromGDocs(KGAPI2::Drive::FilePtr &file)
+QUrl OneDriveHelper::convertFromGDocs(KGAPI2::Drive::FilePtr &file)
 {
     const QString originalMimeType = file->mimeType();
-    auto convIt = GDriveHelper::ConversionMap.constFind(originalMimeType);
-    if (convIt == GDriveHelper::ConversionMap.cend()) {
+    auto convIt = OneDriveHelper::ConversionMap.constFind(originalMimeType);
+    if (convIt == OneDriveHelper::ConversionMap.cend()) {
         return file->downloadUrl();
     }
 
@@ -110,7 +110,7 @@ QUrl GDriveHelper::convertFromGDocs(KGAPI2::Drive::FilePtr &file)
         const auto linkIt = exportLinks.constFind(targetMimeType);
         if (linkIt != exportLinks.cend()) {
             file->setMimeType(targetMimeType);
-            file->setTitle(file->title() + GDriveHelper::ExtensionsMap[targetMimeType]);
+            file->setTitle(file->title() + OneDriveHelper::ExtensionsMap[targetMimeType]);
             return *linkIt;
         }
     }
@@ -122,7 +122,7 @@ QUrl GDriveHelper::convertFromGDocs(KGAPI2::Drive::FilePtr &file)
 
 // Currently unused, see https://phabricator.kde.org/T3443
 /*
-KIO::UDSEntry GDriveHelper::trash()
+KIO::UDSEntry OneDriveHelper::trash()
 {
     KIO::UDSEntry trashEntry;
     trashEntry.insert(KIO::UDSEntry::UDS_NAME, QStringLiteral("trash"));

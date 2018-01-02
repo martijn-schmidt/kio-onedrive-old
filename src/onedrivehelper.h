@@ -17,13 +17,13 @@
  *
  */
 
-#ifndef GDRIVEHELPER_H
-#define GDRIVEHELPER_H
+#ifndef ONEDRIVEHELPER_H
+#define ONEDRIVEHELPER_H
 
 #include <KGAPI/Types>
 #include <KIO/UDSEntry>
 
-namespace GDriveHelper
+namespace OneDriveHelper
 {
     QString folderMimeType();
 
@@ -36,4 +36,4 @@ namespace GDriveHelper
 
 
 
-#endif // GDRIVEHELPER_H
+#endif // ONEDRIVEHELPER_H

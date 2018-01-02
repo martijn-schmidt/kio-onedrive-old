@@ -47,7 +47,7 @@ private:
 
     void storeAccount(const KGAPI2::AccountPtr &account);
 
-    // Store/remove account names in/from gdrive-accounts keychain entry.
+    // Store/remove account names in/from onedrive-accounts keychain entry.
     void removeAccountName(const QString &accountName);
     void storeAccountName(const QString &accountName);
 

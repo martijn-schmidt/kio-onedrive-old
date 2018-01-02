@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef GDRIVESLAVE_H
-#define GDRIVESLAVE_H
+#ifndef ONEDRIVESLAVE_H
+#define ONEDRIVESLAVE_H
 
 #include "pathcache.h"
 
@@ -37,7 +37,7 @@ namespace KGAPI2
 class Job;
 }
 
-class KIOGDrive : public KIO::SlaveBase
+class KIOOneDrive : public KIO::SlaveBase
 {
 public:
     enum Action {
@@ -46,10 +46,10 @@ public:
         Restart
     };
 
-    explicit KIOGDrive(const QByteArray &protocol,
+    explicit KIOOneDrive(const QByteArray &protocol,
                        const QByteArray &pool_socket,
                        const QByteArray &app_socket);
-    virtual ~KIOGDrive();
+    virtual ~KIOOneDrive();
 
     virtual void openConnection() Q_DECL_OVERRIDE;
     virtual void listDir(const QUrl &url) Q_DECL_OVERRIDE;
@@ -69,7 +69,7 @@ protected:
     void virtual_hook(int id, void *data) Q_DECL_OVERRIDE;
 
 private:
-    Q_DISABLE_COPY(KIOGDrive)
+    Q_DISABLE_COPY(KIOOneDrive)
 
     enum PathFlags {
         None = 0,
@@ -109,4 +109,4 @@ private:
 
 };
 
-#endif // GDRIVESLAVE_H
+#endif // ONEDRIVESLAVE_H
