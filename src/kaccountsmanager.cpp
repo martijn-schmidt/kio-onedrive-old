@@ -24,7 +24,6 @@
 #include <Accounts/Provider>
 #include <KAccounts/Core>
 #include <KAccounts/GetCredentialsJob>
-#include <KMGraph/Account>
 
 #include <QProcess>
 #include <QStandardPaths>

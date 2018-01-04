@@ -28,7 +28,6 @@
 #include <QUrlQuery>
 #include <QTemporaryFile>
 
-#include <KMGraph/Account>
 #include <KMGraph/OneDrive/About>
 #include <KMGraph/OneDrive/AboutFetchJob>
 #include <KMGraph/OneDrive/ChildReference>
