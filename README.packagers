@@ -1,13 +1,14 @@
 Backend selection
 =================
 
-By default, KIO OneDrive looks for kaccounts-integration. If it gets found,
-the KAccounts backend gets built. Otherwise, the QtKeychain backend is used
-as fallback (in which case qtkeychain becomes a required dependency).
-It is possible to disable the KAccounts integration (which again, makes
-qtkeychain a required dependency) with the following cmake switch:
+At this moment KIO OneDrive requires kaccounts-integration. While the AccountManager
+backend abstraction which was inherited by the fork from KIO GDrive has been left
+intact, the QtKeychain backend has been disabled in favour of the KAccounts backend.
 
-    cmake -DCMAKE_DISABLE_FIND_PACKAGE_KAccounts=ON ..
+When another AccountManager backend does become available, it can be selected through
+the following cmake switch (if omitted this will default to KACCOUNTS):
+
+    cmake -DWITH_ACCOUNTMANAGER=KACCOUNTS
 
 Implicit dependency on file managers
 =====================================
