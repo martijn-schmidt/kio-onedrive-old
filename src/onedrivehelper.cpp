@@ -35,7 +35,7 @@ using namespace KMGraph2::OneDrive;
 
 #define VND_OASIS_OPENDOCUMENT_TEXT     QStringLiteral("application/vnd.oasis.opendocument.text")
 #define VND_OASIS_OPENDOCUMENT_PRESENTATION QStringLiteral("application/vnd.oasis.opendocument.presentation")
-#define VND_OASIS_OPENDOCUMENT_SPREADSHEED QStringLiteral("application/x-vnd.oasis.opendocument.spreadsheet")
+#define VND_OASIS_OPENDOCUMENT_SPREADSHEET QStringLiteral("application/x-vnd.oasis.opendocument.spreadsheet")
 
 #define VND_OPENXMLFORMATS_OFFICEDOCUMENT_WORDPROCESSINGML_DOCUMENT \
             QStringLiteral("application/vnd.openxmlformats-officedocument.wordprocessingml.document")
@@ -52,7 +52,7 @@ namespace OneDriveHelper {
 
 static const QMap<QString /* mimetype */, QString /* .ext */> ExtensionsMap{
     { VND_OASIS_OPENDOCUMENT_TEXT, QStringLiteral(".odt") },
-    { VND_OASIS_OPENDOCUMENT_SPREADSHEED, QStringLiteral(".ods") },
+    { VND_OASIS_OPENDOCUMENT_SPREADSHEET, QStringLiteral(".ods") },
     { VND_OASIS_OPENDOCUMENT_PRESENTATION, QStringLiteral(".odp") },
     { VND_OPENXMLFORMATS_OFFICEDOCUMENT_WORDPROCESSINGML_DOCUMENT, QStringLiteral(".docx") },
     { VND_OPENXMLFORMATS_OFFICEDOCUMENT_SPREADSHEETML_SHEET, QStringLiteral(".xlsx") },
@@ -79,7 +79,7 @@ static const QMap<QString /* mimetype */, QStringList /* target mimetypes */ > C
             APPLICATION_PDF }
     },
     { VND_GOOGLE_APPS_SPREADSHEET, {
-            VND_OASIS_OPENDOCUMENT_SPREADSHEED,
+            VND_OASIS_OPENDOCUMENT_SPREADSHEET,
             VND_OPENXMLFORMATS_OFFICEDOCUMENT_SPREADSHEETML_SHEET,
             APPLICATION_PDF }
     }
