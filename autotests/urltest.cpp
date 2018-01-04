@@ -62,6 +62,7 @@ void UrlTest::testOneDriveUrl_data()
             << QStringLiteral("foo@outlook.com")
             << QStringLiteral("/foo@outlook.com")
             << QStringList {QStringLiteral("foo@outlook.com"), QStringLiteral("bar")};
+
     QTest::newRow("folder in account root - trailing slash")
             << QUrl(QStringLiteral("onedrive:///foo@outlook.com/bar/"))
             << QStringLiteral("foo@outlook.com")

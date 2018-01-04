@@ -71,4 +71,5 @@ Comment[sv]= Genväg för att bläddra i Microsoft OneDrive-filer så snart ett 
 Comment[tr]=Yeni bir Microsoft hesabı eklendiğinde Microsoft OneDrive dosyalarına göz atma kısayolu.
 Comment[uk]=Кнопка для перегляду файлів Microsoft OneDrive після додавання нового облікового запису Microsoft.
 Comment[x-test]=xx Shortcut to browse Microsoft OneDrive files as soon as a new Microsoft account has been added.xx
+Comment[zh_CN]= 浏览 Microsoft OneDrive 文件的快捷方式，只要 Microsoft 账号被添加即可使用。
 Action=Popup
