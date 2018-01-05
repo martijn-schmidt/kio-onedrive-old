@@ -22,6 +22,7 @@
 
 #include "pathcache.h"
 
+#include <KMGraph/Account>
 #include <KMGraph/Types>
 #include <KIO/SlaveBase>
 

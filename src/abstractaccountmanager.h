@@ -21,6 +21,7 @@
 
 #include <QSet>
 
+#include <KMGraph/Account>
 #include <KIO/UDSEntry>
 
 class AbstractAccountManager
