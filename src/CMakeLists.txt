@@ -6,7 +6,8 @@ set(kio_onedrive_SRCS
     pathcache.cpp
     abstractaccountmanager.cpp
     onedrivehelper.cpp
-    onedriveurl.cpp)
+    onedriveurl.cpp
+    debug.cpp)
 
 if (KAccounts_FOUND)
     set(BACKEND_SRC kaccountsmanager.cpp)
