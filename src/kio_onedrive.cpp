@@ -33,16 +33,17 @@
 #include <KMGraph/OneDrive/AboutFetchJob>
 #include <KMGraph/OneDrive/ChildReference>
 #include <KMGraph/OneDrive/ChildReferenceFetchJob>
-#include <KMGraph/OneDrive/ChildReferenceCreateJob>
 #include <KMGraph/OneDrive/File>
 #include <KMGraph/OneDrive/FileCopyJob>
 #include <KMGraph/OneDrive/FileCreateJob>
+#include <KMGraph/OneDrive/FileDeleteJob>
 #include <KMGraph/OneDrive/FileModifyJob>
-#include <KMGraph/OneDrive/FileTrashJob>
 #include <KMGraph/OneDrive/FileFetchJob>
 #include <KMGraph/OneDrive/FileFetchContentJob>
 #include <KMGraph/OneDrive/FileSearchQuery>
 #include <KMGraph/OneDrive/ParentReference>
+#include <KMGraph/OneDrive/ParentReferenceDeleteJob>
+#include <KMGraph/OneDrive/ParentReferenceFetchJob>
 #include <KMGraph/OneDrive/Permission>
 #include <KIO/AccessManager>
 #include <KIO/Job>
@@ -880,18 +881,6 @@ void KIOOneDrive::copy(const QUrl &src, const QUrl &dest, int permissions, KIO::
 
 void KIOOneDrive::del(const QUrl &url, bool isfile)
 {
-    // FIXME: Verify that a single file cannot actually have multiple parent
-    // references. If it can, then we need to be more careful: currently this
-    // implementation will simply remove the file from all it's parents but
-    // it actually should just remove the current parent reference
-
-    // FIXME: Because of the above, we are not really deleting the file, but only
-    // moving it to trash - so if users really really really wants to delete the
-    // file, they have to go to OneDrive web interface and delete it there. I think
-    // that we should do the DELETE operation here, because for trash people have
-    // their local trashes. This however requires fixing the first FIXME first,
-    // otherwise we are risking severe data loss.
-
     qCDebug(ONEDRIVE) << "Deleting URL" << url << "- is it a file?" << isfile;
 
     const QUrlQuery urlQuery(url);
@@ -933,13 +922,38 @@ void KIOOneDrive::del(const QUrl &url, bool isfile)
         }
     }
 
-    FileTrashJob trashJob(fileId, getAccount(accountId));
-    runJob(trashJob, url, accountId);
+    // Files can have multiple parentReferences, meaning the same fileId and name
+    // can show up as a childReference in more than one folder. However, outright
+    // deleting the fileId would remove it from both folders which might result
+    // in an unintended loss of data.
+
+    // Therefore, we first check if the file has more than one parent - when this
+    // is the case we find the parentId of the current folder and remove that
+    // parentId from the fileId.
+
+    // If the fileId has exactly one parentId, we delete the entire fileId rather
+    // than removing the last parentId (which would cause the file to become
+    // invisible in your OneDrive).
+
+    ParentReferenceFetchJob parentsFetch(fileId, getAccount(accountId));
+    runJob(parentsFetch, url, accountId);
+
+    if (parentsFetch.items().count() > 1) {
+        parentId = resolveFileIdFromPath(onedriveUrl.parentPath());
+        qCDebug(ONEDRIVE) << "More than one parent - deleting parentReference" << parentId << "from" << url;
+        ParentReferenceDeleteJob parentDeleteJob(fileId, parentId, getAccount(accountId));
+        runJob(parentDeleteJob, url, accountId);
+        return;
+    } else {
+        qCDebug(ONEDRIVE) << "Outright deleting the URL:" << url;
+        FileDeleteJob deleteJob(fileId, getAccount(accountId));
+        runJob(deleteJob, url, accountId);
+        return;
+    }
 
     m_cache.removePath(url.path());
 
     finished();
-
 }
 
 void KIOOneDrive::rename(const QUrl &src, const QUrl &dest, KIO::JobFlags flags)
