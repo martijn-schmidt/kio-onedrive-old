@@ -939,7 +939,7 @@ void KIOOneDrive::del(const QUrl &url, bool isfile)
     runJob(parentsFetch, url, accountId);
 
     if (parentsFetch.items().count() > 1) {
-        parentId = resolveFileIdFromPath(onedriveUrl.parentPath());
+        const parentId = resolveFileIdFromPath(onedriveUrl.parentPath());
         qCDebug(ONEDRIVE) << "More than one parent - deleting parentReference" << parentId << "from" << url;
         ParentReferenceDeleteJob parentDeleteJob(fileId, parentId, getAccount(accountId));
         runJob(parentDeleteJob, url, accountId);
