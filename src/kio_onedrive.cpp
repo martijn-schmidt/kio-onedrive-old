@@ -24,8 +24,6 @@
 #include "onedriveurl.h"
 #include "onedriveversion.h"
 
-#include "debug.h"
-
 #include <QApplication>
 #include <QUrlQuery>
 #include <QTemporaryFile>
