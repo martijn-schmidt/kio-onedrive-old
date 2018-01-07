@@ -943,12 +943,10 @@ void KIOOneDrive::del(const QUrl &url, bool isfile)
         qCDebug(ONEDRIVE) << "More than one parent - deleting parentReference" << parentId << "from" << url;
         ParentReferenceDeleteJob parentDeleteJob(fileId, parentId, getAccount(accountId));
         runJob(parentDeleteJob, url, accountId);
-        return;
     } else {
         qCDebug(ONEDRIVE) << "Outright deleting the URL:" << url;
         FileDeleteJob deleteJob(fileId, getAccount(accountId));
         runJob(deleteJob, url, accountId);
-        return;
     }
 
     m_cache.removePath(url.path());
