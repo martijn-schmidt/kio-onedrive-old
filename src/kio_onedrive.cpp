@@ -943,10 +943,14 @@ void KIOOneDrive::del(const QUrl &url, bool isfile)
         qCDebug(ONEDRIVE) << "More than one parent - deleting parentReference" << parentId << "from" << url;
         ParentReferenceDeleteJob parentDeleteJob(fileId, parentId, getAccount(accountId));
         runJob(parentDeleteJob, url, accountId);
-    } else {
-        qCDebug(ONEDRIVE) << "Outright deleting the URL:" << url;
+    } else if (objects.count() == 1) {
+        qCDebug(ONEDRIVE) << "Exactly one parent - outright deleting the URL:" << url;
         FileDeleteJob deleteJob(fileId, getAccount(accountId));
         runJob(deleteJob, url, accountId);
+    } else {
+        qCDebug(ONEDRIVE) << "ParentReferenceFetchJob retrieved" << objects.count() << "items, while one ore more was expected.";
+        error(KIO::ERR_DOES_NOT_EXIST, src.path());
+        return;
     }
 
     m_cache.removePath(url.path());
