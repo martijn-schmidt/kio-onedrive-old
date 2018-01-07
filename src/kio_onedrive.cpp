@@ -940,7 +940,7 @@ void KIOOneDrive::del(const QUrl &url, bool isfile)
     const ObjectsList objects = parentsFetch.items();
     if (objects.count() > 1) {
         const QString parentId = resolveFileIdFromPath(onedriveUrl.parentPath());
-        qCDebug(ONEDRIVE) << "More than one parent - deleting parentReference" << parentId << "from" << url;
+        qCDebug(ONEDRIVE) << "More than one parent - deleting parentReference" << parentId << "from URL:" << url;
         ParentReferenceDeleteJob parentDeleteJob(fileId, parentId, getAccount(accountId));
         runJob(parentDeleteJob, url, accountId);
     } else if (objects.count() == 1) {
@@ -949,7 +949,7 @@ void KIOOneDrive::del(const QUrl &url, bool isfile)
         runJob(deleteJob, url, accountId);
     } else {
         qCDebug(ONEDRIVE) << "ParentReferenceFetchJob retrieved" << objects.count() << "items, while one ore more was expected.";
-        error(KIO::ERR_DOES_NOT_EXIST, src.path());
+        error(KIO::ERR_DOES_NOT_EXIST, url.path());
         return;
     }
 
