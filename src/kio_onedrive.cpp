@@ -937,7 +937,10 @@ void KIOOneDrive::del(const QUrl &url, bool isfile)
 
     ParentReferenceFetchJob parentsFetch(fileId, getAccount(accountId));
     runJob(parentsFetch, url, accountId);
+    qCDebug(ONEDRIVE) << "Dumping contents of parentsFetch:" << parentsFetch;
     const ObjectsList objects = parentsFetch.items();
+    qCDebug(ONEDRIVE) << "Dumping contents of objects:" << objects;
+    qCDebug(ONEDRIVE) << "Dumping contents of parentsFetch.items():" << parentsFetch.items();
     if (objects.count() > 1) {
         const QString parentId = resolveFileIdFromPath(onedriveUrl.parentPath());
         qCDebug(ONEDRIVE) << "More than one parent - deleting parentReference" << parentId << "from URL:" << url;
