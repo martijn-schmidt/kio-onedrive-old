@@ -999,7 +999,6 @@ void KIOOneDrive::rename(const QUrl &src, const QUrl &dest, KIO::JobFlags flags)
     runJob(sourceFileFetchJob, src, sourceAccountId);
 
     const ObjectsList objects = sourceFileFetchJob.items();
-    qCDebug(ONEDRIVE) << "Dumping contents of objects:" << objects;
     if (objects.count() != 1) {
         qCDebug(ONEDRIVE) << "FileFetchJob retrieved" << objects.count() << "items, while only one was expected.";
         error(KIO::ERR_DOES_NOT_EXIST, src.path());
