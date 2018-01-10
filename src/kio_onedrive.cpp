@@ -857,14 +857,16 @@ void KIOOneDrive::copy(const QUrl &src, const QUrl &dest, int permissions, KIO::
         error(KIO::ERR_ACCESS_DENIED, dest.path());
         return;
     }
+
+    QString destDirId;
     const auto destPathComps = destOneDriveUrl.pathComponents();
-    if (destOneDriveUrl.isAccountRoot()) {
-        // copy to root
-    } else {
-        const QString destDirId = destPathComps[destPathComps.count() - 2];
-        destParentReferences << ParentReferencePtr(new ParentReference(destDirId));
-    }
     const QString destFileName = destPathComps.last();
+    if (destPathComps.size() == 2) {
+        destDirId = rootFolderId(destAccountId);
+    } else {
+        destDirId = resolveFileIdFromPath(destOneDriveUrl.parentPath(), KIOOneDrive::PathIsFolder);
+    }
+    destParentReferences << ParentReferencePtr(new ParentReference(destDirId));
 
     FilePtr destFile(new File);
     destFile->setTitle(destFileName);
