@@ -35,7 +35,11 @@ using namespace KMGraph2::OneDrive;
 
 #define VND_OASIS_OPENDOCUMENT_TEXT     QStringLiteral("application/vnd.oasis.opendocument.text")
 #define VND_OASIS_OPENDOCUMENT_PRESENTATION QStringLiteral("application/vnd.oasis.opendocument.presentation")
+// Google's Drive API v2 mistakenly documents an x-vnd style MIME type
+// for .ods files, so we #define both the correct but undocumented,
+// as well as the incorrect but publicly documented MIME type.
 #define VND_OASIS_OPENDOCUMENT_SPREADSHEET QStringLiteral("application/vnd.oasis.opendocument.spreadsheet")
+#define X_VND_OASIS_OPENDOCUMENT_SPREADSHEET QStringLiteral("application/x-vnd.oasis.opendocument.spreadsheet")
 
 #define VND_OPENXMLFORMATS_OFFICEDOCUMENT_WORDPROCESSINGML_DOCUMENT \
             QStringLiteral("application/vnd.openxmlformats-officedocument.wordprocessingml.document")
@@ -109,7 +113,13 @@ QUrl OneDriveHelper::convertFromGDocs(KMGraph2::OneDrive::FilePtr &file)
     Q_FOREACH (const QString &targetMimeType, convIt.value()) {
         const auto linkIt = exportLinks.constFind(targetMimeType);
         if (linkIt != exportLinks.cend()) {
-            file->setMimeType(targetMimeType);
+            // Extra check to safeguard against a mistake in Google's Drive API v2
+            // documentation which lists an invalid MIME type for .ods files.
+            if (targetMimeType == X_VND_OASIS_OPENDOCUMENT_SPREADSHEET) {
+                file->setMimeType(VND_OASIS_OPENDOCUMENT_SPREADSHEET);
+            } else {
+                file->setMimeType(targetMimeType);
+            }
             file->setTitle(file->title() + OneDriveHelper::ExtensionsMap[targetMimeType]);
             return *linkIt;
         }
