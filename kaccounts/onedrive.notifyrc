@@ -24,6 +24,7 @@ Comment[tr]=KIO OneDrive
 Comment[uk]=KIO OneDrive
 Comment[x-test]=xxKIO OneDrivexx
 Comment[zh_CN]=KIO OneDrive
+Comment[zh_TW]=KIO OneDrive
 
 [Event/new-account-added]
 Name=New Account Added
@@ -50,6 +51,7 @@ Name[tr]=Yeni Hesap Eklendi
 Name[uk]=Додано новий обліковий запис
 Name[x-test]=xxNew Account Addedxx
 Name[zh_CN]=新帐户已添加
+Name[zh_TW]=已新增帳號
 Comment= Shortcut to browse Microsoft OneDrive files as soon as a new Microsoft account has been added.
 Comment[ca]=Drecera per explorar els fitxers de Microsoft OneDrive tan aviat com s'afegeixi un compte nou de Microsoft.
 Comment[ca@valencia]=Drecera per explorar els fitxers de Microsoft OneDrive tan prompte com s'afija un compte nou de Microsoft.
@@ -72,4 +74,5 @@ Comment[tr]=Yeni bir Microsoft hesabı eklendiğinde Microsoft OneDrive dosyalar
 Comment[uk]=Кнопка для перегляду файлів Microsoft OneDrive після додавання нового облікового запису Microsoft.
 Comment[x-test]=xx Shortcut to browse Microsoft OneDrive files as soon as a new Microsoft account has been added.xx
 Comment[zh_CN]= 浏览 Microsoft OneDrive 文件的快捷方式，只要 Microsoft 账号被添加即可使用。
+Comment[zh_TW]=只要新增 Microsoft 帳號即可以快速瀏覽 Microsoft OneDrive上的檔案。
 Action=Popup

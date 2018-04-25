@@ -41,6 +41,7 @@ using namespace KMGraph2::OneDrive;
 #define VND_OASIS_OPENDOCUMENT_SPREADSHEET QStringLiteral("application/vnd.oasis.opendocument.spreadsheet")
 #define X_VND_OASIS_OPENDOCUMENT_SPREADSHEET QStringLiteral("application/x-vnd.oasis.opendocument.spreadsheet")
 
+
 #define VND_OPENXMLFORMATS_OFFICEDOCUMENT_WORDPROCESSINGML_DOCUMENT \
             QStringLiteral("application/vnd.openxmlformats-officedocument.wordprocessingml.document")
 #define VND_OPENXMLFORMATS_OFFICEDOCUMENT_PRESENTATIONML_PRESENTATION \
